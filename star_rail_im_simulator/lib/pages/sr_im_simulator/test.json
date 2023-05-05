@@ -1,0 +1,51 @@
+{
+    "chatName": "未命名的对话",
+    "chatIntroduction": "无简介",
+    "msgInfoList": [
+        {
+            "characterInfo": {
+                "name": "匿名用户",
+                "avatarInfo": {
+                    "isAssets": true,
+                    "infoStr": "default.png"
+                }
+            },
+            "sentBySelf": false,
+            "msg": "我要舔黑塔的jiojio！"
+        },
+        {
+            "characterInfo": {
+                "name": "黑塔",
+                "avatarInfo": {
+                    "isAssets": true,
+                    "infoStr": "herta.png"
+                }
+            },
+            "sentBySelf": false,
+            "msg": "？"
+        },
+        {
+            "characterInfo": {
+                "name": "星",
+                "avatarInfo": {
+                    "isAssets": true,
+                    "infoStr": "xing.png"
+                }
+            },
+            "sentBySelf": true,
+            "msg": "我要舔黑塔的jiojio！"
+        },
+        {
+            "characterInfo": {
+                "name": "黑塔",
+                "avatarInfo": {
+                    "isAssets": true,
+                    "infoStr": "herta.png"
+                }
+            },
+            "sentBySelf": false,
+            "msg": "？？"
+        }
+    ],
+    "characterInfoList": []
+}

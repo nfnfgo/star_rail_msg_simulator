@@ -162,54 +162,90 @@ class SRIMMsgEditableMsgTile extends StatefulWidget {
 }
 
 class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
+  /// Copy a messsage info, and add it to the end of a chat info's message list
+  void copyMsgToTheEndOfChatInfo({
+    /// A [SRIMChatInfo] instance which is got from a ChangeNotifierProvider
+    required SRIMChatInfo chatInfoProvider,
+
+    /// The SRIMMsgInfo instance that need to be copied to the end of the msgList,
+    /// and finally notify the listeners of the chat info.
+    ///
+    /// Notice: Please make sure the chat info instance is
+    /// got from a ChangeNotifierProvider
+    required SRIMMsgInfo msgInfo,
+  }) {
+    try {
+      SRIMMsgInfo newMsgInfo = SRIMMsgInfo.copyWith(msgInfo);
+      chatInfoProvider.msgInfoList?.add(newMsgInfo);
+      chatInfoProvider.notify();
+    } catch (e) {
+      Exception('[CopyMessageFailedError] Failed to copy a message '
+          'to the end of the chat info');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SRIMChatInfo>(
       builder: (context, chatInfoProvider, child) {
-        // Extract msg info for this widget
+        /// Extract msg info refrence for this widget
         SRIMMsgInfo msgInfo = chatInfoProvider.msgInfoList![widget.index];
         return GestureDetector(
           onTap: () {
             showDialog(
               context: context,
               builder: (context) {
+                // Message Edit Dialog
                 return AlertDialog(
-                  title: Text('修改消息内容'),
-                  content: Container(
+                  title: const Text('修改消息内容'),
+                  content: SizedBox(
                     width: double.maxFinite,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         // Choose Charactor
-                        Text('消息内容修改'),
-                        SizedBox(height: 10),
+                        const Text('发送者昵称'),
+                        const SizedBox(height: 10),
+                        // Edit Message Content Field
+                        TextFormField(
+                          initialValue: msgInfo.characterInfo?.name,
+                          onChanged: (value) {
+                            msgInfo.characterInfo?.name = value;
+                            chatInfoProvider.notify();
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        // Choose Charactor
+                        const Text('消息内容'),
+                        const SizedBox(height: 10),
                         // Edit Message Content Field
                         TextFormField(
                           initialValue: msgInfo.msg,
                           onChanged: (value) {
                             msgInfo.msg = value;
-                            chatInfoProvider.notifyListeners();
+                            chatInfoProvider.notify();
                           },
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         // Choose Charactor
-                        Text('角色选择'),
-                        SizedBox(height: 10),
+                        const Text('消息发送方'),
+                        const SizedBox(height: 10),
                         SRIMSwitchSettingTile(
                           initValue: msgInfo.sentBySelf,
                           title: '由本人发送',
                           onChanged: (value) {
                             msgInfo.sentBySelf = value;
-                            chatInfoProvider.notifyListeners();
+                            chatInfoProvider.notify();
                           },
                         ),
-                        SizedBox(height: 10),
+                        const Divider(),
+                        const SizedBox(height: 10),
                         // Choose Charactor
-                        Text('发送方选项'),
-                        SizedBox(height: 10),
-                        Container(
+                        const Text('快捷选择'),
+                        const SizedBox(height: 10),
+                        SizedBox(
                           height: 50,
                           child: ListView.separated(
                             shrinkWrap: true,
@@ -223,8 +259,9 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                                   SRIMCharacterInfos.list[index];
                               return GestureDetector(
                                 onTap: () {
-                                  msgInfo.characterInfo = characterInfo;
-                                  chatInfoProvider.notifyListeners();
+                                  msgInfo.characterInfo =
+                                      SRIMCharacterInfo.copyWith(characterInfo);
+                                  chatInfoProvider.notify();
                                   SmartDialog.showToast(
                                       '成功更换角色为${characterInfo.name}');
                                 },
@@ -243,26 +280,37 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                   actions: [
                     TextButton(
                         onPressed: () {
-                          SRIMMsgInfo newMsgInfo = SRIMMsgInfo();
-                          newMsgInfo.msg = msgInfo.msg;
-                          newMsgInfo.characterInfo = msgInfo.characterInfo;
-                          newMsgInfo.sentBySelf = msgInfo.sentBySelf;
-                          chatInfoProvider.msgInfoList?.add(newMsgInfo);
-                          chatInfoProvider.notifyListeners();
+                          copyMsgToTheEndOfChatInfo(
+                            chatInfoProvider: chatInfoProvider,
+                            msgInfo: msgInfo,
+                          );
+                          SmartDialog.showToast('消息已成功复制到对话末尾');
                         },
-                        child: Text('复制本消息'))
+                        child: const Text('复制本消息')),
+                    TextButton(
+                        onPressed: () {
+                          chatInfoProvider.msgInfoList
+                              ?.removeWhere((element) => element == msgInfo);
+                          SmartDialog.showToast('消息已删除');
+                          chatInfoProvider.notify();
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          '删除本消息',
+                          style: TextStyle(color: Colors.red),
+                        ))
                   ],
                 );
               },
             );
           },
+          // LongPress a message to make a copy at the last of the conversation
           onLongPress: () {
-            SRIMMsgInfo newMsgInfo = SRIMMsgInfo();
-            newMsgInfo.msg = msgInfo.msg;
-            newMsgInfo.characterInfo = msgInfo.characterInfo;
-            newMsgInfo.sentBySelf = msgInfo.sentBySelf;
-            chatInfoProvider.msgInfoList?.add(newMsgInfo);
-            chatInfoProvider.notifyListeners();
+            copyMsgToTheEndOfChatInfo(
+              chatInfoProvider: chatInfoProvider,
+              msgInfo: msgInfo,
+            );
+            SmartDialog.showToast('消息已成功复制到对话末尾');
           },
           child: SRIMMessageTile.fromInfo(msgInfo),
         );

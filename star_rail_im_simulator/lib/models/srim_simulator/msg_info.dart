@@ -19,12 +19,38 @@ class SRIMMsgInfo {
 
   String msg;
 
+  /// Create a new SRIMMsgInfo instance from another SRIMMsgInfo instance
+  factory SRIMMsgInfo.copyWith(SRIMMsgInfo msgInfo) {
+    SRIMMsgInfo newMsgInfo = SRIMMsgInfo();
+    newMsgInfo.copyWith(msgInfo);
+    return newMsgInfo;
+  }
+
+  void copyWith(SRIMMsgInfo msgInfo) {
+    // characterInfo
+    try {
+      characterInfo = SRIMCharacterInfo.copyWith(msgInfo.characterInfo!);
+    } catch (e) {}
+
+    // sentBySelf
+    try {
+      sentBySelf = msgInfo.sentBySelf;
+    } catch (e) {}
+
+    // msg
+    try {
+      msg = msgInfo.msg;
+    } catch (e) {}
+  }
+
+  /// Create a SRIMMsgInfo instance from map
   factory SRIMMsgInfo.fromMap(Map? infoMap) {
     SRIMMsgInfo msgInfo = SRIMMsgInfo();
     msgInfo.fromMap(infoMap);
     return msgInfo;
   }
 
+  /// Update the value of SRIMMsgInfo from a [Map] type object
   void fromMap(Map? infoMap) {
     if (infoMap == null) {
       return;

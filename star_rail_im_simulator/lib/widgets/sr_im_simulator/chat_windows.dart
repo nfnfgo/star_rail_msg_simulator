@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 // Models
 import 'package:star_rail_im_simulator/models/srim_simulator/srim_simulator.dart';
@@ -46,6 +47,46 @@ class SRIMChatWindows extends StatefulWidget {
 }
 
 class _SRIMChatWindowsState extends State<SRIMChatWindows> {
+  /// Show a dialog that allow user to change the info of the chat info
+  void showEditChatInfoDialog(
+    /// The chat info instance, which must be created by a ChangeNotifierProvider
+    SRIMChatInfo chatInfoProvider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: AlertDialog(
+              title: const Text('修改聊天信息'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    initialValue: chatInfoProvider.chatName,
+                    onChanged: (value) {
+                      chatInfoProvider.chatName = value;
+                      chatInfoProvider.notify();
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: chatInfoProvider.chatIntroduction,
+                    onChanged: (value) {
+                      chatInfoProvider.chatIntroduction = value;
+                      chatInfoProvider.notify();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Window Paddings (Animated)
@@ -75,25 +116,34 @@ class _SRIMChatWindowsState extends State<SRIMChatWindows> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 15, 10, 10),
               // IM Meta Info Row (Contact Name / GroupName / Description etc)
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Contact/Group Name
-                  Text(
-                    widget.chatInfo.chatName ?? '未命名窗口',
-                    style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
-                  ),
-                  Text(
-                    widget.chatInfo.chatIntroduction ?? '暂无介绍',
-                    style: TextStyle(
-                        color: Colors.black.withOpacity(0.3),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
-                  )
-                ],
+              child: Consumer<SRIMChatInfo>(
+                builder: (context, chatInfoProvider, child) {
+                  return GestureDetector(
+                      // Tap MetaInfo to edit feature
+                      onTap: () {
+                        showEditChatInfoDialog(chatInfoProvider);
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Contact/Group Name
+                          Text(
+                            widget.chatInfo.chatName ?? '未命名窗口',
+                            style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18),
+                          ),
+                          Text(
+                            widget.chatInfo.chatIntroduction ?? '暂无介绍',
+                            style: TextStyle(
+                                color: Colors.black.withOpacity(0.3),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14),
+                          )
+                        ],
+                      ));
+                },
               ),
             ),
             Divider(

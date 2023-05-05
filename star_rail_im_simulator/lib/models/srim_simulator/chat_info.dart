@@ -33,10 +33,7 @@ class SRIMChatInfo with ChangeNotifier {
   List<SRIMCharacterInfo>? characterInfoList;
 
   /// Update info of SRIMChatInfo from string type object
-  fromString(String jsonStr) {
-    // Decode jsonStr to map
-    Map infoMap = jsonDecode(jsonStr);
-
+  void fromMap(Map infoMap) {
     // chatName
     try {
       chatName = infoMap['chatName'];
@@ -64,8 +61,7 @@ class SRIMChatInfo with ChangeNotifier {
     } catch (e) {}
   }
 
-  @override
-  String toString() {
+  Map toMap() {
     // Convert info to map
     Map infoMap = {};
 
@@ -96,6 +92,51 @@ class SRIMChatInfo with ChangeNotifier {
     } catch (e) {}
 
     // Return a string
-    return jsonEncode(infoMap);
+    return infoMap;
+  }
+
+  @override
+  String toString() {
+    return jsonEncode(toMap());
+  }
+
+  void fromString(String infoStr) {
+    fromMap(jsonDecode(infoStr));
+  }
+
+  /// Add a new message to the chatInfo
+  void addNewMsg({
+    /// If notify all listeners of the provider after add new message info
+    ///
+    /// Notice: if this params is set to true, you should make sure this instance
+    /// is in a provider
+    bool notify = true,
+  }) {
+    if (msgInfoList == null) {
+      throw Exception('[NullMsgInfoListError] msgInfoList of this SRIMChatInfo '
+          'instance is null, please check if this instance is correctly initialized, '
+          'or initialize msgInfoList before calling this method');
+    }
+    msgInfoList?.add(SRIMMsgInfo());
+    if (notify == true) {
+      try {
+        notifyListeners();
+      } catch (e) {
+        throw Exception(
+            '[CanNotNotifyListenersError] Failed to notify listeners, please make sure '
+            'that this instance is created by a ChangeNotifierProvider widget');
+      }
+    }
+  }
+
+  /// Same as this.notifyListeners(), throw error if failed to notify litseners
+  void notify() {
+    try {
+      notifyListeners();
+    } catch (e) {
+      throw Exception(
+          '[CanNotNotifyListenersError] Failed to notify listeners, please make sure '
+          'that this instance is created by a ChangeNotifierProvider widget');
+    }
   }
 }

@@ -11,8 +11,28 @@ class SRIMCharacterInfo {
     this.name,
     this.avatarInfo,
   }) {
-    name ??= '无名客';
+    name ??= '匿名用户';
     avatarInfo ??= SRIMAvatarInfo();
+  }
+
+  /// Create a new SRIMCharacterInfo instance from another SRIMCharacterInfo instance
+  factory SRIMCharacterInfo.copyWith(SRIMCharacterInfo characterInfo) {
+    SRIMCharacterInfo newCharacterInfo = SRIMCharacterInfo();
+    newCharacterInfo.copyWith(characterInfo);
+    return newCharacterInfo;
+  }
+
+  /// Update the value of SRIMCharacterInfo from another SRIMCharacterInfo instance
+  void copyWith(SRIMCharacterInfo characterInfo) {
+    // name
+    try {
+      name = characterInfo.name;
+    } catch (e) {}
+
+    // avatarInfo
+    try {
+      avatarInfo = SRIMAvatarInfo.copyWith(characterInfo.avatarInfo!);
+    } catch (e) {}
   }
 
   /// The name of this character, e.g.: Herta
@@ -67,8 +87,28 @@ class SRIMAvatarInfo {
     this.infoStr,
   }) {
     if (isAssets == true && infoStr == null) {
-      infoStr = 'herta.png';
+      infoStr = 'default.png';
     }
+  }
+
+  /// Create a new SRIMAvatarInfo instance from another SRIMAvatarInfo instance
+  factory SRIMAvatarInfo.copyWith(SRIMAvatarInfo avatarInfo) {
+    SRIMAvatarInfo newAvatarInfo = SRIMAvatarInfo();
+    newAvatarInfo.copyWith(avatarInfo);
+    return newAvatarInfo;
+  }
+
+  /// Update the value of SRIMAvatarInfo from another SRIMAvatarInfo instance
+  void copyWith(SRIMAvatarInfo avatarInfo) {
+    // isAssets
+    try {
+      isAssets = avatarInfo.isAssets;
+    } catch (e) {}
+
+    // infoStr
+    try {
+      infoStr = avatarInfo.infoStr;
+    } catch (e) {}
   }
 
   /// If this avatar is an asset avatar

@@ -1,6 +1,7 @@
 // Fundamental
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Models
 import 'package:star_rail_im_simulator/models/srim_simulator/srim_simulator.dart';
@@ -11,6 +12,7 @@ import 'package:star_rail_im_simulator/widgets/sr_im_simulator/materials.dart';
 
 // Plugs
 import 'package:provider/provider.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 class SRIMChatPage extends StatefulWidget {
   const SRIMChatPage({super.key});
@@ -120,6 +122,8 @@ class SRIMEditBar extends StatefulWidget {
 }
 
 class _SRIMEditBarState extends State<SRIMEditBar> {
+  String _cacheJsonInfo = '';
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SRIMChatInfo>(
@@ -129,15 +133,6 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // Add New Message Button
-              IconButton(
-                onPressed: () {
-                  chatInfoProvider.msgInfoList!.add(SRIMMsgInfo());
-                  chatInfoProvider.notifyListeners();
-                },
-                icon: Icon(Icons.add_rounded),
-                iconSize: widget.iconSize,
-              ),
               // Edit Chat Info Button
               IconButton(
                 onPressed: () {
@@ -157,7 +152,7 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
                                   initialValue: chatInfoProvider.chatName,
                                   onChanged: (value) {
                                     chatInfoProvider.chatName = value;
-                                    chatInfoProvider.notifyListeners();
+                                    chatInfoProvider.notify();
                                   },
                                 ),
                                 TextFormField(
@@ -165,7 +160,7 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
                                       chatInfoProvider.chatIntroduction,
                                   onChanged: (value) {
                                     chatInfoProvider.chatIntroduction = value;
-                                    chatInfoProvider.notifyListeners();
+                                    chatInfoProvider.notify();
                                   },
                                 ),
                               ],
@@ -179,10 +174,92 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
                 icon: Icon(Icons.edit_note_rounded),
                 iconSize: widget.iconSize,
               ),
+              // Add New Message Button
               IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.save_alt_rounded),
+                onPressed: () {
+                  chatInfoProvider.addNewMsg();
+                },
+                icon: const Icon(Icons.add_rounded),
                 iconSize: widget.iconSize,
+              ),
+
+              // Export Chat Button
+              // Consumer<SRIMChatInfo>(
+              //   builder: (context, chatInfoProvider, child) {
+              //     return IconButton(
+              //       onPressed: () {
+              //         Clipboard.setData(
+              //             ClipboardData(text: chatInfoProvider.toString()));
+              //         SmartDialog.showToast('对话信息已经导出到设备剪贴板');
+              //       },
+              //       icon: const Icon(Icons.save_alt_rounded),
+              //       iconSize: widget.iconSize,
+              //     );
+              //   },
+              // ),
+
+              // Import from json String Button
+              Consumer<SRIMChatInfo>(
+                builder: (context, chatInfoProvider, child) {
+                  return IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Center(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: AlertDialog(
+                                title: const Text('从JSON文本导入'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    TextFormField(
+                                      onChanged: (value) {
+                                        _cacheJsonInfo = value;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        Clipboard.setData(ClipboardData(
+                                            text: chatInfoProvider.toString()));
+                                        SmartDialog.showToast('对话信息已经导出到设备剪贴板');
+                                      },
+                                      child: const Text('导出此对话')),
+                                  TextButton(
+                                      onPressed: () {
+                                        try {
+                                          chatInfoProvider
+                                              .fromString(_cacheJsonInfo);
+                                          SmartDialog.showToast('导入成功');
+                                          chatInfoProvider.notify();
+                                          Navigator.of(context).pop();
+                                        } catch (e) {
+                                          SmartDialog.showToast('导入失败');
+                                        }
+                                      },
+                                      child: const Text('导入')),
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('取消'))
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.import_export_rounded),
+                    iconSize: widget.iconSize,
+                  );
+                },
               ),
             ],
           ),
