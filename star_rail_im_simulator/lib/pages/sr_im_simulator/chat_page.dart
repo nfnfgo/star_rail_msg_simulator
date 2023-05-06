@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 // Models
 import 'package:star_rail_im_simulator/models/srim_simulator/srim_simulator.dart';
+import 'package:star_rail_im_simulator/models/srim_simulator/providers/app_settings.dart';
 
 // Widgets
 import 'package:star_rail_im_simulator/widgets/sr_im_simulator/sr_im_simulator.dart';
@@ -46,9 +47,13 @@ class _SRIMChatPageState extends State<SRIMChatPage> {
               Positioned.fill(child: SafeArea(
                 child: Consumer<SRIMChatInfo>(
                   builder: (context, chatInfoProvider, child) {
-                    return SRIMChatWindows(
-                      hasPadding: true,
-                      chatInfo: chatInfoProvider,
+                    return Consumer<SRIMSettingsInfo>(
+                      builder: (context, settingsProvider, child) {
+                        return SRIMChatWindows(
+                          hasPadding: !settingsProvider.chatWindowsFullScreen,
+                          chatInfo: chatInfoProvider,
+                        );
+                      },
                     );
                   },
                 ),
@@ -257,6 +262,25 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
                       );
                     },
                     icon: const Icon(Icons.import_export_rounded),
+                    iconSize: widget.iconSize,
+                  );
+                },
+              ),
+
+              // FullScreen Button
+              Consumer<SRIMSettingsInfo>(
+                builder: (context, settingsProvider, child) {
+                  return IconButton(
+                    onPressed: () {
+                      // Update full screen settings
+                      settingsProvider.chatWindowsFullScreen =
+                          !settingsProvider.chatWindowsFullScreen;
+                      // notify
+                      settingsProvider.notify();
+                    },
+                    icon: Icon(settingsProvider.chatWindowsFullScreen
+                        ? Icons.fullscreen_exit_rounded
+                        : Icons.fullscreen_rounded),
                     iconSize: widget.iconSize,
                   );
                 },

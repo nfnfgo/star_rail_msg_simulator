@@ -184,6 +184,7 @@ class SRIMCharacterInfos {
     SRIMCharacterInfos.himeko,
     SRIMCharacterInfos.march7th,
     SRIMCharacterInfos.welt,
+    // Test
   ];
   static SRIMCharacterInfo star = SRIMCharacterInfo(
       name: '星', avatarInfo: SRIMAvatarInfo(infoStr: 'xing.png'));

@@ -104,6 +104,17 @@ class SRIMChatInfo with ChangeNotifier {
     fromMap(jsonDecode(infoStr));
   }
 
+  /// Same as this.notifyListeners(), throw error if failed to notify litseners
+  void notify() {
+    try {
+      notifyListeners();
+    } catch (e) {
+      throw Exception(
+          '[CanNotNotifyListenersError] Failed to notify listeners, please make sure '
+          'that this instance is created by a ChangeNotifierProvider widget');
+    }
+  }
+
   /// Add a new message to the chatInfo
   void addNewMsg({
     /// If notify all listeners of the provider after add new message info
@@ -129,14 +140,37 @@ class SRIMChatInfo with ChangeNotifier {
     }
   }
 
-  /// Same as this.notifyListeners(), throw error if failed to notify litseners
-  void notify() {
-    try {
-      notifyListeners();
-    } catch (e) {
-      throw Exception(
-          '[CanNotNotifyListenersError] Failed to notify listeners, please make sure '
-          'that this instance is created by a ChangeNotifierProvider widget');
+  /// make a copy of the msginfo and add it to the list after the original msginfo
+  /// if the received msgInfo params is in the msgInfoList of this chat info
+  ///
+  /// The new instance of msginfo is not a reference to the
+  /// original msginfo instance but a completely new object.
+  void duplicateMsg(SRIMMsgInfo msgInfo) {
+    // if the list is null, return error
+    if (msgInfoList == null) {
+      throw Exception('[NullMsgInfoList] The msgInfoList of this chat info is '
+          'null, please make sure you have initialize this chat info properly');
     }
+    // try to get the index of this msgInfo in the msgInfoList
+    int listLen = msgInfoList?.length ?? 0;
+    int? index;
+    // iterate the msgInfoList
+    for (int i = 0; i < listLen; ++i) {
+      // found the index of receving msgInfo
+      if (msgInfoList![i] == msgInfo) {
+        index = i;
+        break;
+      }
+    }
+    // if not find the index, throw error
+    if (index == null) {
+      throw Exception('[MsgInfoNotFound] Can not found the msgInfo in the '
+          'msgInfoList of this chat info\n'
+          'Please make sure that the msgInfo you passing is in the list of this '
+          'chat info');
+    }
+    // if got the index, then copy and add it
+    SRIMMsgInfo newMsgInfo = SRIMMsgInfo.copyWith(msgInfo);
+    msgInfoList?.insert(index, newMsgInfo);
   }
 }

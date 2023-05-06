@@ -9,6 +9,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 // Models
 import 'package:star_rail_im_simulator/models/srim_simulator/srim_simulator.dart';
+import 'package:star_rail_im_simulator/models/srim_simulator/providers/app_settings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,13 +23,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // ChatInfoProvider
         ChangeNotifierProvider(
           create: (context) {
             return SRIMChatInfo();
           },
         ),
+        // SettingsInfoProvider
+        ChangeNotifierProvider(
+          create: (context) {
+            return SRIMSettingsInfo();
+          },
+        )
       ],
+      // Root Material App
       child: MaterialApp(
+        // do NOT show the debug banner when debugging
         debugShowCheckedModeBanner: false,
         title: '星穹铁道聊天模拟器',
         theme: ThemeData(
@@ -44,6 +54,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         home: const SRIMChatPage(),
+        // Flutter Smart Dialog plug configurations
         navigatorObservers: [FlutterSmartDialog.observer],
         builder: FlutterSmartDialog.init(),
       ),

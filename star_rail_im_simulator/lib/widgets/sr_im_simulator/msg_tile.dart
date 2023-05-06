@@ -1,6 +1,7 @@
 // Fundamental
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'dart:ui';
 
 // Models
 import 'package:star_rail_im_simulator/models/srim_simulator/srim_simulator.dart';
@@ -203,6 +204,7 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                     msgInfo: msgInfo,
                   ),
                   actions: [
+                    // Copy a message to the end
                     TextButton(
                         onPressed: () {
                           copyMsgToTheEndOfChatInfo(
@@ -212,7 +214,10 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                           SmartDialog.showToast('消息已成功复制到对话末尾');
                         },
                         child: const Text('复制本消息')),
+                    // Delete a message
                     TextButton(
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.red),
                         onPressed: () {
                           chatInfoProvider.msgInfoList
                               ?.removeWhere((element) => element == msgInfo);
@@ -222,8 +227,12 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                         },
                         child: const Text(
                           '删除本消息',
-                          style: TextStyle(color: Colors.red),
-                        ))
+                        )),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('关闭此窗口'))
                   ],
                 );
               },
@@ -231,10 +240,8 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
           },
           // LongPress a message to make a copy at the last of the conversation
           onLongPress: () {
-            copyMsgToTheEndOfChatInfo(
-              chatInfoProvider: chatInfoProvider,
-              msgInfo: msgInfo,
-            );
+            chatInfoProvider.duplicateMsg(msgInfo);
+            chatInfoProvider.notify();
             SmartDialog.showToast('消息已成功复制到对话末尾');
           },
           child: SRIMMessageTile.fromInfo(msgInfo),
@@ -308,16 +315,19 @@ class EditMsgInfoDialogContent extends StatefulWidget {
 
 class _EditMsgInfoDialogContentState extends State<EditMsgInfoDialogContent> {
   late TextEditingController _editNameController;
+  late TextEditingController _editContentController;
 
   @override
   void initState() {
     super.initState();
     _editNameController = TextEditingController();
+    _editContentController = TextEditingController();
   }
 
   @override
   void dispose() {
     _editNameController.dispose();
+    _editContentController = TextEditingController();
     super.dispose();
   }
 
@@ -326,83 +336,132 @@ class _EditMsgInfoDialogContentState extends State<EditMsgInfoDialogContent> {
     SRIMChatInfo chatInfoProvider = widget.chatInfoPrivder;
     SRIMMsgInfo msgInfo = widget.msgInfo;
     _editNameController.text = msgInfo.characterInfo?.name ?? '';
+    _editContentController.text = msgInfo.msg;
     return SizedBox(
       width: double.maxFinite,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
         children: [
-          const SizedBox(height: 10),
-          // Choose Charactor
-          const Text('发送者昵称'),
-          const SizedBox(height: 10),
-          // Edit Message Content Field
-          TextFormField(
-            controller: _editNameController,
-            onChanged: (value) {
-              msgInfo.characterInfo?.name = value;
-              chatInfoProvider.notify();
-            },
-          ),
-          const SizedBox(height: 10),
-          // Choose Charactor
-          const Text('消息内容'),
-          const SizedBox(height: 10),
-          // Edit Message Content Field
-          TextFormField(
-            initialValue: msgInfo.msg,
-            onChanged: (value) {
-              msgInfo.msg = value;
-              chatInfoProvider.notify();
-            },
-          ),
-          const SizedBox(height: 10),
-          // Choose Charactor
-          const Text('消息发送方'),
-          const SizedBox(height: 10),
-          SRIMSwitchSettingTile(
-            initValue: msgInfo.sentBySelf,
-            title: '由本人发送',
-            onChanged: (value) {
-              msgInfo.sentBySelf = value;
-              chatInfoProvider.notify();
-            },
-          ),
-          const Divider(),
-          const SizedBox(height: 10),
-          // Choose Charactor
-          const Text('快捷选择'),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 50,
-            child: ListView.separated(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              itemCount: SRIMCharacterInfos.list.length,
-              separatorBuilder: (context, index) => const VerticalDivider(),
-              itemBuilder: (context, index) {
-                // get the character info for this item
-                SRIMCharacterInfo characterInfo =
-                    SRIMCharacterInfos.list[index];
-                return GestureDetector(
-                  onTap: () {
-                    msgInfo.characterInfo =
-                        SRIMCharacterInfo.copyWith(characterInfo);
-                    _editNameController.text = characterInfo.name!;
-                    chatInfoProvider.notify();
-                    SmartDialog.showToast('成功更换角色为${characterInfo.name}');
-                  },
-                  child: SRIMAvatar(
-                    size: 50,
-                    imageProvider:
-                        characterInfo.avatarInfo?.avatarImageProvider,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              // Choose Charactor
+              const Text('发送者昵称'),
+              const SizedBox(height: 10),
+              // Edit Message Content Field
+              TextFormField(
+                controller: _editNameController,
+                onChanged: (value) {
+                  msgInfo.characterInfo?.name = value;
+                  chatInfoProvider.notify();
+                },
+              ),
+              const SizedBox(height: 10),
+              // Choose Charactor
+              const Text('消息内容'),
+              const SizedBox(height: 10),
+              // Edit Message Content Field
+              TextFormField(
+                decoration: InputDecoration(
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _editContentController.clear();
+                      msgInfo.msg = '';
+                      chatInfoProvider.notify();
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                ),
+                controller: _editContentController,
+                onChanged: (value) {
+                  msgInfo.msg = value;
+                  chatInfoProvider.notify();
+                },
+                onFieldSubmitted: (_) {
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 10),
+              // Choose Charactor
+              const Text('消息发送方'),
+              const SizedBox(height: 10),
+              SRIMSwitchSettingTile(
+                initValue: msgInfo.sentBySelf,
+                title: '由本人发送',
+                onChanged: (value) {
+                  msgInfo.sentBySelf = value;
+                  chatInfoProvider.notify();
+                },
+              ),
+              const Divider(),
+              const SizedBox(height: 10),
+              // Choose Charactor
+              const Text('快捷选择'),
+              const SizedBox(height: 10),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: GridView.builder(
+                  itemCount: SRIMCharacterInfos.list.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount:
+                        (MediaQueryData.fromWindow(window).size.width / 100)
+                            .ceil(),
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    // get the character info for this item
+                    SRIMCharacterInfo characterInfo =
+                        SRIMCharacterInfos.list[index];
+                    return GestureDetector(
+                      onTap: () {
+                        msgInfo.characterInfo =
+                            SRIMCharacterInfo.copyWith(characterInfo);
+                        _editNameController.text = characterInfo.name!;
+                        chatInfoProvider.notify();
+                        SmartDialog.showToast('成功更换角色为${characterInfo.name}');
+                      },
+                      child: SRIMAvatar(
+                        size: 50,
+                        imageProvider:
+                            characterInfo.avatarInfo?.avatarImageProvider,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
   }
 }
+
+
+// ListView.separated(
+//               shrinkWrap: true,
+//               scrollDirection: Axis.horizontal,
+//               itemCount: SRIMCharacterInfos.list.length,
+//               separatorBuilder: (context, index) => const VerticalDivider(),
+//               itemBuilder: (context, index) {
+//                 // get the character info for this item
+//                 SRIMCharacterInfo characterInfo =
+//                     SRIMCharacterInfos.list[index];
+//                 return GestureDetector(
+//                   onTap: () {
+//                     msgInfo.characterInfo =
+//                         SRIMCharacterInfo.copyWith(characterInfo);
+//                     _editNameController.text = characterInfo.name!;
+//                     chatInfoProvider.notify();
+//                     SmartDialog.showToast('成功更换角色为${characterInfo.name}');
+//                   },
+//                   child: SRIMAvatar(
+//                     size: 50,
+//                     imageProvider:
+//                         characterInfo.avatarInfo?.avatarImageProvider,
+//                   ),
+//                 );
+//               },
+//             )
