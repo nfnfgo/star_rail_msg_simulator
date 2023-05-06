@@ -179,9 +179,24 @@ class SRIMCharacterInfos {
   static List<SRIMCharacterInfo> list = [
     SRIMCharacterInfos.star,
     SRIMCharacterInfos.herta,
+    SRIMCharacterInfos.danheng,
+    SRIMCharacterInfos.clara,
+    SRIMCharacterInfos.himeko,
+    SRIMCharacterInfos.march7th,
+    SRIMCharacterInfos.welt,
   ];
   static SRIMCharacterInfo star = SRIMCharacterInfo(
       name: '星', avatarInfo: SRIMAvatarInfo(infoStr: 'xing.png'));
   static SRIMCharacterInfo herta = SRIMCharacterInfo(
       name: '黑塔', avatarInfo: SRIMAvatarInfo(infoStr: 'herta.png'));
+  static SRIMCharacterInfo danheng = SRIMCharacterInfo(
+      name: '丹恒', avatarInfo: SRIMAvatarInfo(infoStr: 'danheng.png'));
+  static SRIMCharacterInfo clara = SRIMCharacterInfo(
+      name: '克拉拉', avatarInfo: SRIMAvatarInfo(infoStr: 'clara.png'));
+  static SRIMCharacterInfo himeko = SRIMCharacterInfo(
+      name: '姬子', avatarInfo: SRIMAvatarInfo(infoStr: 'himeko.png'));
+  static SRIMCharacterInfo march7th = SRIMCharacterInfo(
+      name: '三月七', avatarInfo: SRIMAvatarInfo(infoStr: 'march7th.png'));
+  static SRIMCharacterInfo welt = SRIMCharacterInfo(
+      name: '瓦尔特', avatarInfo: SRIMAvatarInfo(infoStr: 'welt.png'));
 }

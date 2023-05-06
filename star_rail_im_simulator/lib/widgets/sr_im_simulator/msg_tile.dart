@@ -198,84 +198,9 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                 // Message Edit Dialog
                 return AlertDialog(
                   title: const Text('修改消息内容'),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        // Choose Charactor
-                        const Text('发送者昵称'),
-                        const SizedBox(height: 10),
-                        // Edit Message Content Field
-                        TextFormField(
-                          initialValue: msgInfo.characterInfo?.name,
-                          onChanged: (value) {
-                            msgInfo.characterInfo?.name = value;
-                            chatInfoProvider.notify();
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        // Choose Charactor
-                        const Text('消息内容'),
-                        const SizedBox(height: 10),
-                        // Edit Message Content Field
-                        TextFormField(
-                          initialValue: msgInfo.msg,
-                          onChanged: (value) {
-                            msgInfo.msg = value;
-                            chatInfoProvider.notify();
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        // Choose Charactor
-                        const Text('消息发送方'),
-                        const SizedBox(height: 10),
-                        SRIMSwitchSettingTile(
-                          initValue: msgInfo.sentBySelf,
-                          title: '由本人发送',
-                          onChanged: (value) {
-                            msgInfo.sentBySelf = value;
-                            chatInfoProvider.notify();
-                          },
-                        ),
-                        const Divider(),
-                        const SizedBox(height: 10),
-                        // Choose Charactor
-                        const Text('快捷选择'),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          height: 50,
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            itemCount: SRIMCharacterInfos.list.length,
-                            separatorBuilder: (context, index) =>
-                                const VerticalDivider(),
-                            itemBuilder: (context, index) {
-                              // get the character info for this item
-                              SRIMCharacterInfo characterInfo =
-                                  SRIMCharacterInfos.list[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  msgInfo.characterInfo =
-                                      SRIMCharacterInfo.copyWith(characterInfo);
-                                  chatInfoProvider.notify();
-                                  SmartDialog.showToast(
-                                      '成功更换角色为${characterInfo.name}');
-                                },
-                                child: SRIMAvatar(
-                                  size: 50,
-                                  imageProvider: characterInfo
-                                      .avatarInfo?.avatarImageProvider,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                  content: EditMsgInfoDialogContent(
+                    chatInfoPrivder: chatInfoProvider,
+                    msgInfo: msgInfo,
                   ),
                   actions: [
                     TextButton(
@@ -359,6 +284,125 @@ class _SRIMSwitchSettingTileState extends State<SRIMSwitchSettingTile> {
           },
         )
       ],
+    );
+  }
+}
+
+class EditMsgInfoDialogContent extends StatefulWidget {
+  EditMsgInfoDialogContent({
+    super.key,
+    required this.chatInfoPrivder,
+    required this.msgInfo,
+  });
+
+  /// The chat info instance, this instance must be got from a ChangeNotifierProvider
+  /// since .notify() would be called after user edit
+  SRIMChatInfo chatInfoPrivder;
+
+  /// The msgInfo instance which need to be edit
+  SRIMMsgInfo msgInfo;
+  @override
+  State<EditMsgInfoDialogContent> createState() =>
+      _EditMsgInfoDialogContentState();
+}
+
+class _EditMsgInfoDialogContentState extends State<EditMsgInfoDialogContent> {
+  late TextEditingController _editNameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _editNameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _editNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    SRIMChatInfo chatInfoProvider = widget.chatInfoPrivder;
+    SRIMMsgInfo msgInfo = widget.msgInfo;
+    _editNameController.text = msgInfo.characterInfo?.name ?? '';
+    return SizedBox(
+      width: double.maxFinite,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          // Choose Charactor
+          const Text('发送者昵称'),
+          const SizedBox(height: 10),
+          // Edit Message Content Field
+          TextFormField(
+            controller: _editNameController,
+            onChanged: (value) {
+              msgInfo.characterInfo?.name = value;
+              chatInfoProvider.notify();
+            },
+          ),
+          const SizedBox(height: 10),
+          // Choose Charactor
+          const Text('消息内容'),
+          const SizedBox(height: 10),
+          // Edit Message Content Field
+          TextFormField(
+            initialValue: msgInfo.msg,
+            onChanged: (value) {
+              msgInfo.msg = value;
+              chatInfoProvider.notify();
+            },
+          ),
+          const SizedBox(height: 10),
+          // Choose Charactor
+          const Text('消息发送方'),
+          const SizedBox(height: 10),
+          SRIMSwitchSettingTile(
+            initValue: msgInfo.sentBySelf,
+            title: '由本人发送',
+            onChanged: (value) {
+              msgInfo.sentBySelf = value;
+              chatInfoProvider.notify();
+            },
+          ),
+          const Divider(),
+          const SizedBox(height: 10),
+          // Choose Charactor
+          const Text('快捷选择'),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 50,
+            child: ListView.separated(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemCount: SRIMCharacterInfos.list.length,
+              separatorBuilder: (context, index) => const VerticalDivider(),
+              itemBuilder: (context, index) {
+                // get the character info for this item
+                SRIMCharacterInfo characterInfo =
+                    SRIMCharacterInfos.list[index];
+                return GestureDetector(
+                  onTap: () {
+                    msgInfo.characterInfo =
+                        SRIMCharacterInfo.copyWith(characterInfo);
+                    _editNameController.text = characterInfo.name!;
+                    chatInfoProvider.notify();
+                    SmartDialog.showToast('成功更换角色为${characterInfo.name}');
+                  },
+                  child: SRIMAvatar(
+                    size: 50,
+                    imageProvider:
+                        characterInfo.avatarInfo?.avatarImageProvider,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -18,7 +19,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="一个可以模拟星穹铁道聊天界面的小工具，欢迎使用！">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,9 +28,9 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
-  <title>star_rail_im_simulator</title>
+  <title>星穹铁道聊天模拟器</title>
   <link rel="manifest" href="manifest.json">
 
   <script>
@@ -39,16 +40,82 @@
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
 </head>
+
 <body>
+
+  <div class="loading-wrapper">
+    <div class="loading"></div>
+    <div class="loading-text">加载中</div>
+    <div class="loading-description">首次加载需要导入配置文件，用时较长，请耐心等待</div>
+  </div>
+
+  <style>
+    .loading-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .loading {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      perspective: 200px;
+    }
+
+    .loading:before,
+    .loading:after {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      content: "";
+      animation: jumping 0.5s infinite alternate;
+      background: rgba(0, 0, 0, 0);
+    }
+
+    .loading:before {
+      left: 0;
+    }
+
+    .loading:after {
+      right: 0;
+      animation-delay: 0.15s;
+    }
+
+    @keyframes jumping {
+      0% {
+        transform: scale(1) translateY(0px) rotateX(0deg);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+      }
+
+      100% {
+        transform: scale(1.2) translateY(-25px) rotateX(45deg);
+        background: #000;
+        box-shadow: 0 25px 40px #000;
+      }
+    }
+
+    .loading-text {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
+
+
   <script>
-    window.addEventListener('load', function(ev) {
+    window.addEventListener('load', function (ev) {
       // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
         },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
+        onEntrypointLoaded: function (engineInitializer) {
+          engineInitializer.initializeEngine().then(function (appRunner) {
             appRunner.runApp();
           });
         }
@@ -56,4 +123,5 @@
     });
   </script>
 </body>
+
 </html>
