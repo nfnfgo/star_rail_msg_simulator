@@ -154,11 +154,17 @@ class _SRIMChatWindowsState extends State<SRIMChatWindows> {
             Expanded(
                 child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ListView.builder(
-                itemCount: widget.chatInfo.msgInfoList?.length ?? 0,
-                itemBuilder: (context, index) {
-                  return SRIMMsgEditableMsgTile(index: index);
-                },
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  reverse: true,
+                  itemCount: widget.chatInfo.msgInfoList?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    return SRIMMsgEditableMsgTile(
+                        index: widget.chatInfo.msgInfoList!.length - index - 1);
+                  },
+                ),
               ),
             )),
           ],
