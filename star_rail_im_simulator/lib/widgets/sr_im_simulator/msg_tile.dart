@@ -13,6 +13,79 @@ import 'package:provider/provider.dart';
 // Widgets
 import './sr_im_simulator.dart';
 
+class SRIMMessageTileBase extends StatefulWidget {
+  SRIMMessageTileBase({
+    super.key,
+    this.initShowMsg = true,
+    this.showMsg = true,
+  });
+
+  /// The initial value of showMsg. If this value is different from the showMsg value
+  /// when the widget is initialized, the widget will play an animation from the
+  /// initShowMsg status to the showMsg status.
+  ///
+  /// For example, if you want this widget to display an incoming message animation, you can
+  /// set the initShowMsg to false, and showMsg to true.
+  bool initShowMsg = true;
+
+  /// Indicates whether the message should be displayed. If this value changes,
+  /// the message tile widget will automatically handle the change, play the relevant animation,
+  /// and switch to the new showMsg value.
+  bool showMsg = true;
+
+  @override
+  State<SRIMMessageTileBase> createState() => _SRIMMessageTileBaseState();
+}
+
+class _SRIMMessageTileBaseState extends State<SRIMMessageTileBase> {
+  // Since it is likely that both types of messages will require an entrance animation,
+  // the functionality to handle message animations has been placed in the SRIMMessageTileBase base class.
+
+  /// Trigger the animation of this message based on the value of `showMsg` and
+  /// `oldShowMsg` param which this method received
+  ///
+  /// E.g: if the received `oldShowMsg` is `false`, and `this.showMsg` is `true`, call
+  /// `animateForward()` method
+  ///
+  /// Returns `-1` when `animateReversed()` triggerd, `0` when no animation triggerd,
+  /// `1` when `animatedForward()` triggerd
+  int triggerAnimation(bool oldShowMsg) {
+    // if equal, return 0 and do nothing
+    if (widget.showMsg == oldShowMsg) {
+      return 0;
+    }
+    // call forward animation method
+    if (widget.showMsg == true) {
+      animateForward();
+      return 1;
+    }
+    // call reverse animation method
+    animateReversed();
+    return -1;
+  }
+
+  /// This method will be automatically called by the sub-class of SRIMMessageTileInterface
+  /// when the widget needs to play a forward animation.
+  void animateForward() {
+    debugPrint(
+        '[NotOverrideAnimationWarning] The animateForward method has not been '
+        'overridden by the sub-class of SRIMMessageTileInterface.');
+  }
+
+  /// This method will be automatically called by the sub-class of SRIMMessageTileInterface
+  /// when the widget needs to play a reversed animation.
+  void animateReversed() {
+    debugPrint(
+        '[NotOverrideAnimationWarning] The animateReversed method has not been '
+        'overridden by the sub-class of SRIMMessageTileInterface.');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
 class SRIMMessageTile extends StatefulWidget {
   SRIMMessageTile({
     super.key,
