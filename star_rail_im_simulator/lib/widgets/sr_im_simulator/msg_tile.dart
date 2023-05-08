@@ -295,6 +295,8 @@ class _SRIMSwitchSettingTileState extends State<SRIMSwitchSettingTile> {
   }
 }
 
+/// The Content Widget for EditableMsgTile widget
+
 class EditMsgInfoDialogContent extends StatefulWidget {
   EditMsgInfoDialogContent({
     super.key,
@@ -438,7 +440,6 @@ class _EditMsgInfoDialogContentState extends State<EditMsgInfoDialogContent> {
     );
   }
 }
-
 
 // ListView.separated(
 //               shrinkWrap: true,
