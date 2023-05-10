@@ -128,14 +128,13 @@ class SRIMAvatarInfo {
         return AssetImage('assets/images/srim/avatars/$infoStr');
       } catch (e) {
         // TODO: Add an error avatar
-        return const AssetImage('assets/images/srim/avatars/herta.png');
+        return const AssetImage('assets/images/srim/avatars/default.png');
       }
     } else {
       try {
         return FileImage(File(infoStr!));
       } catch (e) {
-        // TODO: Add an default avatar
-        return const AssetImage('assets/images/srim/avatars/herta.png');
+        return const AssetImage('assets/images/srim/avatars/default.png');
       }
     }
   }

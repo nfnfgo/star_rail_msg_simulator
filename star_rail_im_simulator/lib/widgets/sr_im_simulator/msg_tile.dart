@@ -97,7 +97,7 @@ class SRIMMessageTile extends StatefulWidget {
     imageProvider ??= const AssetImage('assets/images/srim/avatars/herta.png');
   }
 
-  factory SRIMMessageTile.fromInfo(SRIMMsgInfo msgInfo) {
+  factory SRIMMessageTile.fromInfo(SRIMTextMsgInfo msgInfo) {
     return SRIMMessageTile(
       selfMsg: msgInfo.sentBySelf,
       name: msgInfo.characterInfo?.name ?? '无名客',
@@ -246,10 +246,11 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
     ///
     /// Notice: Please make sure the chat info instance is
     /// got from a ChangeNotifierProvider
-    required SRIMMsgInfo msgInfo,
+    required SRIMTextMsgInfo msgInfo,
   }) {
     try {
-      SRIMMsgInfo newMsgInfo = SRIMMsgInfo.copyWith(msgInfo);
+      SRIMTextMsgInfo newMsgInfo = SRIMTextMsgInfo();
+      newMsgInfo.copyWith(msgInfo);
       chatInfoProvider.msgInfoList?.add(newMsgInfo);
       chatInfoProvider.notify();
     } catch (e) {
@@ -263,7 +264,7 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
     return Consumer<SRIMChatInfo>(
       builder: (context, chatInfoProvider, child) {
         /// Extract msg info refrence for this widget
-        SRIMMsgInfo msgInfo = chatInfoProvider.msgInfoList![widget.index];
+        SRIMTextMsgInfo msgInfo = chatInfoProvider.msgInfoList![widget.index];
         return GestureDetector(
           onTap: () {
             showDialog(
@@ -382,7 +383,7 @@ class EditMsgInfoDialogContent extends StatefulWidget {
   SRIMChatInfo chatInfoPrivder;
 
   /// The msgInfo instance which need to be edit
-  SRIMMsgInfo msgInfo;
+  SRIMTextMsgInfo msgInfo;
   @override
   State<EditMsgInfoDialogContent> createState() =>
       _EditMsgInfoDialogContentState();
@@ -409,7 +410,7 @@ class _EditMsgInfoDialogContentState extends State<EditMsgInfoDialogContent> {
   @override
   Widget build(BuildContext context) {
     SRIMChatInfo chatInfoProvider = widget.chatInfoPrivder;
-    SRIMMsgInfo msgInfo = widget.msgInfo;
+    SRIMTextMsgInfo msgInfo = widget.msgInfo;
     _editNameController.text = msgInfo.characterInfo?.name ?? '';
     _editContentController.text = msgInfo.msg;
     return SizedBox(

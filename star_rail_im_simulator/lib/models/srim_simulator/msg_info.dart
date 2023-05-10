@@ -76,7 +76,7 @@ class SRIMMsgInfoBase {
   /// information has been properly updated.
   void fromMap(Map infoMap) {
     // msgType
-    msgType = infoMap['msgType'] ?? msgType;
+    msgType = SRIMMessageType.fromString(infoMap['msgType']);
   }
 
   /// Converts the message object into a map object.
@@ -93,6 +93,10 @@ class SRIMMsgInfoBase {
   }
 
   /// Update this message info from another same message info object
+  ///
+  /// Notice: The subclass usually need to call `super.copyWith()` before dealing
+  /// with the copy logic in specified subclass to make sure all data has been
+  /// copied to the new instance
   void copyWith(SRIMMsgInfoBase anoMsgInfo) {
     // msgType
     msgType = anoMsgInfo.msgType;
@@ -100,110 +104,150 @@ class SRIMMsgInfoBase {
 
   /// Create a new copy of a already exist message info instance
   ///
-  /// Notice: In most cases, this method NEED NOT to be overriden, you just need
-  /// to make sure the void `copyWith()` method of the subclass has been correctly
-  /// overriden, and this factory method will automatically call the `copyWith()` method
-  /// of the subclass.
+  /// Notice: In most cases, this method NEED NOT to be overriden in the subclass, but
+  /// when you add a new subclass and you want that the `factory copyWith()` method
+  /// could automatically regconized the info of new subclass and call the right
+  /// constructor of different subclass, you need to add new check and dealing logic
+  /// in the base class's `factory copyWith()` method
   ///
-  /// This is because in Dart, even if this instance has a literal
-  /// type of the base class, when you call `copyWith()` method, it will still
-  /// automatically check the runtime type and call the `copyWith()` method in the
-  /// subclass but not based on the type when you declare this class
+  /// This is because when you call factory method to create a new instance,
+  /// the base class didn't know which subclass is proper for the incoming info
+  /// (Map type object for fromMap() method, and an class instance for copyWith()
+  /// method, so the check logic should be pre written in the factory method)
+  ///
+  /// However, the copyWith() and fromMap() (NOT factory) method has no this
+  /// problem because it's sure that what subclass you need to copy and update
   factory SRIMMsgInfoBase.copyWith(SRIMMsgInfoBase anoMsgInfo) {
     SRIMMsgInfoBase newMsgInfo = SRIMMsgInfoBase();
     newMsgInfo.copyWith(anoMsgInfo);
+
+    if (newMsgInfo.msgType == SRIMMessageType.text) {
+      newMsgInfo = SRIMTextMsgInfo();
+      newMsgInfo.copyWith(anoMsgInfo);
+    }
+
+    return newMsgInfo;
+  }
+
+  /// Create a new message info instance from a [Map] type object
+  ///
+  /// Notice: If you want factory fromMap method could automatically regconize
+  /// which subclass this map info is from and call the correct constructor of
+  /// the subclass, you need to add your check and deal logic in the `factory fromMap()`
+  /// method in the base class everytime you add a new subclass. This is similar
+  /// to `factory copyWith()` method, see comment of `factory copyWith()` method of
+  /// the message info base class for more info
+  factory SRIMMsgInfoBase.fromMap(Map infoMap) {
+    // Create and init the base class
+    SRIMMsgInfoBase newMsgInfo = SRIMMsgInfoBase();
+    newMsgInfo.fromMap(infoMap);
+
+    // check the type of the message and call proper constructor of the subclass
+
+    // if it is a text msg type
+    if (newMsgInfo.msgType == SRIMMessageType.text) {
+      newMsgInfo = SRIMTextMsgInfo();
+      newMsgInfo.fromMap(infoMap);
+    }
+
     return newMsgInfo;
   }
 }
 
-class SRIMMsgInfo {
-  /// Creates a message info based on character info, sentBySelf info and msg content
-  SRIMMsgInfo({
+/// A class inherited from [SRIMMsgInfoBase], which contains some info about
+/// characters, use this base class when you want to create a new message info
+/// class that need to deal with the character info of the sender or other specified
+/// character
+class SRIMCharacterMsgInfoBase extends SRIMMsgInfoBase {
+  /// Create a message info class with info about character and sentBySelf info
+  SRIMCharacterMsgInfoBase({
     this.characterInfo,
     this.sentBySelf = false,
-    this.msg = '',
   }) {
-    characterInfo ??= SRIMCharacterInfo();
+    characterInfo = SRIMCharacterInfo();
   }
 
-  /// The character information of the message sender.
+  /// The character info of this message, could be null
   SRIMCharacterInfo? characterInfo;
 
   /// Determines the display position and style of the message if it is sent by the user.
   bool sentBySelf;
 
+  @override
+  Map toMap() {
+    Map infoMap = super.toMap();
+    infoMap['characterInfo'] = characterInfo?.toMap();
+    infoMap['sentBySelf'] = sentBySelf;
+    return infoMap;
+  }
+
+  @override
+  void fromMap(Map infoMap) {
+    super.fromMap(infoMap);
+    if (infoMap['characterInfo'] != null) {
+      characterInfo = SRIMCharacterInfo.fromMap(infoMap['characterInfo']);
+    } else {
+      characterInfo = SRIMCharacterInfo();
+    }
+    sentBySelf = infoMap['sentBySelf'];
+  }
+
+  @override
+  void copyWith(SRIMMsgInfoBase anoMsgInfo) {
+    super.copyWith(anoMsgInfo);
+    // Convert the type to the subclass
+    anoMsgInfo = anoMsgInfo as SRIMCharacterMsgInfoBase;
+    // characterInfo
+    if (anoMsgInfo.characterInfo != null) {
+      characterInfo = SRIMCharacterInfo.copyWith(anoMsgInfo.characterInfo!);
+    }
+    // sentBySelf
+    sentBySelf = anoMsgInfo.sentBySelf;
+  }
+}
+
+class SRIMTextMsgInfo extends SRIMCharacterMsgInfoBase {
+  /// Creates a message info based on character info, sentBySelf info and msg content
+  SRIMTextMsgInfo({
+    this.msg = '',
+  }) {
+    msgType = SRIMMessageType.text;
+  }
+
   /// The text content of the message.
   String msg;
 
-  /// Create a new SRIMMsgInfo instance from another SRIMMsgInfo instance
-  factory SRIMMsgInfo.copyWith(SRIMMsgInfo msgInfo) {
-    SRIMMsgInfo newMsgInfo = SRIMMsgInfo();
-    newMsgInfo.copyWith(msgInfo);
+  /// Update the values of this instance from another message info instance
+  @override
+  void copyWith(SRIMMsgInfoBase anoMsgInfo) {
+    super.copyWith(anoMsgInfo);
+    anoMsgInfo as SRIMTextMsgInfo;
+    // msg
+    msg = anoMsgInfo.msg;
+  }
+
+  @override
+  void fromMap(Map infoMap) {
+    super.fromMap(infoMap);
+    msg = infoMap['msg'] ?? '';
+  }
+
+  factory SRIMTextMsgInfo.fromMap(infoMap) {
+    SRIMTextMsgInfo newMsgInfo = SRIMTextMsgInfo();
+    newMsgInfo.fromMap(infoMap);
     return newMsgInfo;
   }
 
-  void copyWith(SRIMMsgInfo msgInfo) {
-    // characterInfo
-    try {
-      characterInfo = SRIMCharacterInfo.copyWith(msgInfo.characterInfo!);
-    } catch (e) {}
-
-    // sentBySelf
-    try {
-      sentBySelf = msgInfo.sentBySelf;
-    } catch (e) {}
-
-    // msg
-    try {
-      msg = msgInfo.msg;
-    } catch (e) {}
+  factory SRIMTextMsgInfo.copyWith(SRIMTextMsgInfo anoMsgInfo) {
+    SRIMTextMsgInfo newMsgInfo = SRIMTextMsgInfo();
+    newMsgInfo.copyWith(anoMsgInfo);
+    return newMsgInfo;
   }
 
-  /// Create a SRIMMsgInfo instance from map
-  factory SRIMMsgInfo.fromMap(Map? infoMap) {
-    SRIMMsgInfo msgInfo = SRIMMsgInfo();
-    msgInfo.fromMap(infoMap);
-    return msgInfo;
-  }
-
-  /// Update the value of SRIMMsgInfo from a [Map] type object
-  void fromMap(Map? infoMap) {
-    if (infoMap == null) {
-      return;
-    }
-    // characterInfo
-    try {
-      characterInfo = SRIMCharacterInfo.fromMap(infoMap['characterInfo']);
-    } catch (e) {}
-
-    // sentBySelf
-    try {
-      sentBySelf = infoMap['sentBySelf'];
-    } catch (e) {}
-
-    // msg
-    try {
-      msg = infoMap['msg'];
-    } catch (e) {}
-  }
-
+  @override
   Map toMap() {
-    Map infoMap = {};
-    // characterInfo
-    try {
-      infoMap['characterInfo'] = characterInfo!.toMap();
-    } catch (e) {}
-
-    // sentBySelf
-    try {
-      infoMap['sentBySelf'] = sentBySelf;
-    } catch (e) {}
-
-    // msg
-    try {
-      infoMap['msg'] = msg;
-    } catch (e) {}
-
+    Map infoMap = super.toMap();
+    infoMap['msg'] = msg;
     return infoMap;
   }
 }

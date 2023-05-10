@@ -28,7 +28,7 @@ class SRIMChatInfo with ChangeNotifier {
   /// The introduction of this chat, e.g.: 此号停用 | 商务联系：艾丝妲
   String? chatIntroduction;
 
-  List<SRIMMsgInfo>? msgInfoList;
+  List<SRIMTextMsgInfo>? msgInfoList;
 
   List<SRIMCharacterInfo>? characterInfoList;
 
@@ -48,7 +48,7 @@ class SRIMChatInfo with ChangeNotifier {
     try {
       msgInfoList = [];
       for (var msgInfoMap in infoMap['msgInfoList']) {
-        msgInfoList!.add(SRIMMsgInfo.fromMap(msgInfoMap));
+        msgInfoList!.add(SRIMTextMsgInfo.fromMap(msgInfoMap));
       }
     } catch (e) {}
 
@@ -128,7 +128,7 @@ class SRIMChatInfo with ChangeNotifier {
           'instance is null, please check if this instance is correctly initialized, '
           'or initialize msgInfoList before calling this method');
     }
-    msgInfoList?.add(SRIMMsgInfo());
+    msgInfoList?.add(SRIMTextMsgInfo());
     if (notify == true) {
       try {
         notifyListeners();
@@ -145,7 +145,7 @@ class SRIMChatInfo with ChangeNotifier {
   ///
   /// The new instance of msginfo is not a reference to the
   /// original msginfo instance but a completely new object.
-  void duplicateMsg(SRIMMsgInfo msgInfo) {
+  void duplicateMsg(SRIMTextMsgInfo msgInfo) {
     // if the list is null, return error
     if (msgInfoList == null) {
       throw Exception('[NullMsgInfoList] The msgInfoList of this chat info is '
@@ -170,7 +170,7 @@ class SRIMChatInfo with ChangeNotifier {
           'chat info');
     }
     // if got the index, then copy and add it
-    SRIMMsgInfo newMsgInfo = SRIMMsgInfo.copyWith(msgInfo);
+    SRIMTextMsgInfo newMsgInfo = SRIMTextMsgInfo.copyWith(msgInfo);
     msgInfoList?.insert(index, newMsgInfo);
   }
 }
