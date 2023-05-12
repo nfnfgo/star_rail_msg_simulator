@@ -13,8 +13,8 @@ import 'package:provider/provider.dart';
 // Widgets
 import './sr_im_simulator.dart';
 
-class SRIMMessageTileBase extends StatefulWidget {
-  SRIMMessageTileBase({
+class SRIMMsgTileBase extends StatefulWidget {
+  SRIMMsgTileBase({
     super.key,
     this.initShowMsg = true,
     this.showMsg = true,
@@ -33,11 +33,61 @@ class SRIMMessageTileBase extends StatefulWidget {
   /// and switch to the new showMsg value.
   bool showMsg = true;
 
+  /// The message type of this message
+  ///
+  /// Notice: The subclass usually need to rewrite this field to match it's own
+  /// message type
+  SRIMMessageType get msgType {
+    return SRIMMessageType.unknown;
+  }
+
+  /// Create a new Message Tile Widget object from message info class instance
+  ///
+  /// Notice: if you want this factory method (which is in a base class) could
+  /// automatically recognized the subclass you want to create and call the right
+  /// constructor of the subclass, you need to manually add logic into this factory
+  /// method. Here, a similar processing method to the factory constructor of the
+  /// SRIMMsgInfoBase base class is adopted.
+  /// You can refer to the relevant documentation for detailed information
+  factory SRIMMsgTileBase.fromMsgInfo(SRIMMsgInfoBase msgInfo) {
+    SRIMMsgTileBase msgTile;
+    // if need a text tile
+    if (msgInfo.msgType == SRIMMessageType.text) {
+      msgTile = SRIMTextMsgTile();
+    }
+    // if no type matched, default to unknown
+    else {
+      msgTile = SRIMMsgTileBase();
+    }
+    msgTile.fromMsgInfo(msgInfo);
+    return msgTile;
+  }
+
+  /// Update the info of this message tile widget object from a message info instance
+  ///
+  /// Notice: This method will throw `UnmatchMsgType` exception if you tried to
+  /// update the info of this widget by using a message info with a different type,
+  /// however, you could update the info by using any different type message info
+  /// if the `msgType` of this widget is unknown
+  ///
+  /// Notice: Generally you SHOULD rewrite this method for the subclass to extract
+  /// the detail info for different specified class
+  void fromMsgInfo(SRIMMsgInfoBase msgInfo) {
+    // check if the message type is the same
+    if (msgType != SRIMMessageType.unknown) {
+      if (msgType != msgInfo.msgType) {
+        throw Exception('[UnmatchMsgType] The type of the received msgInfo '
+            'is not matching the msgType of this message tile widget, '
+            'please ensure that you have passed a message info with right type');
+      }
+    }
+  }
+
   @override
-  State<SRIMMessageTileBase> createState() => _SRIMMessageTileBaseState();
+  State<SRIMMsgTileBase> createState() => _SRIMMsgTileBaseState();
 }
 
-class _SRIMMessageTileBaseState extends State<SRIMMessageTileBase> {
+class _SRIMMsgTileBaseState extends State<SRIMMsgTileBase> {
   // Since it is likely that both types of messages will require an entrance animation,
   // the functionality to handle message animations has been placed in the SRIMMessageTileBase base class.
 
@@ -86,8 +136,8 @@ class _SRIMMessageTileBaseState extends State<SRIMMessageTileBase> {
   }
 }
 
-class SRIMMessageTile extends StatefulWidget {
-  SRIMMessageTile({
+class SRIMTextMsgTile extends SRIMMsgTileBase {
+  SRIMTextMsgTile({
     super.key,
     this.selfMsg = false,
     this.name = '黑塔',
@@ -97,8 +147,8 @@ class SRIMMessageTile extends StatefulWidget {
     imageProvider ??= const AssetImage('assets/images/srim/avatars/herta.png');
   }
 
-  factory SRIMMessageTile.fromInfo(SRIMTextMsgInfo msgInfo) {
-    return SRIMMessageTile(
+  factory SRIMTextMsgTile.fromInfo(SRIMTextMsgInfo msgInfo) {
+    return SRIMTextMsgTile(
       selfMsg: msgInfo.sentBySelf,
       name: msgInfo.characterInfo?.name ?? '无名客',
       msg: msgInfo.msg,
@@ -116,10 +166,10 @@ class SRIMMessageTile extends StatefulWidget {
   ImageProvider? imageProvider;
 
   @override
-  State<SRIMMessageTile> createState() => _SRIMMessageTileState();
+  State<SRIMTextMsgTile> createState() => _SRIMTextMsgTileState();
 }
 
-class _SRIMMessageTileState extends State<SRIMMessageTile> {
+class _SRIMTextMsgTileState extends State<SRIMTextMsgTile> {
   late EdgeInsetsGeometry padding;
   late Color bubbleColor;
   late BorderRadius bubbleBorder;
@@ -318,7 +368,7 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
             chatInfoProvider.notify();
             SmartDialog.showToast('消息已成功复制到对话末尾');
           },
-          child: SRIMMessageTile.fromInfo(msgInfo),
+          child: SRIMTextMsgTile.fromInfo(msgInfo),
         );
       },
     );
