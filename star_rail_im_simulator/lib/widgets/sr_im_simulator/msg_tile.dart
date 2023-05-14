@@ -37,9 +37,19 @@ class SRIMMsgTileBase extends StatefulWidget {
   ///
   /// Notice: The subclass usually need to rewrite this field to match it's own
   /// message type
-  SRIMMessageType get msgType {
-    return SRIMMessageType.unknown;
+  SRIMMsgType get msgType {
+    return SRIMMsgType.unknown;
   }
+
+  /// The callback function when the message tile was tapped
+  ///
+  /// The subclass should implement the onTap logic in the widget's build method
+  void Function()? onTap;
+
+  /// The callback function when user long press this message
+  ///
+  /// Check the comment of `onTap` for more info
+  void Function()? onLongPress;
 
   /// Create a new Message Tile Widget object from message info class instance
   ///
@@ -52,7 +62,7 @@ class SRIMMsgTileBase extends StatefulWidget {
   factory SRIMMsgTileBase.fromMsgInfo(SRIMMsgInfoBase msgInfo) {
     SRIMMsgTileBase msgTile;
     // if need a text tile
-    if (msgInfo.msgType == SRIMMessageType.text) {
+    if (msgInfo.msgType == SRIMMsgType.text) {
       msgTile = SRIMTextMsgTile();
     }
     // if no type matched, default to unknown
@@ -72,15 +82,23 @@ class SRIMMsgTileBase extends StatefulWidget {
   ///
   /// Notice: Generally you SHOULD rewrite this method for the subclass to extract
   /// the detail info for different specified class
-  void fromMsgInfo(SRIMMsgInfoBase msgInfo) {
+  SRIMMsgTileBase fromMsgInfo(
+    SRIMMsgInfoBase msgInfo, {
+    bool? showMsg,
+    bool? initShowMsg,
+  }) {
+    // Update the showMsg and initShowMsg
+    this.showMsg = showMsg ?? this.showMsg;
+    this.initShowMsg = initShowMsg ?? this.initShowMsg;
     // check if the message type is the same
-    if (msgType != SRIMMessageType.unknown) {
+    if (msgType != SRIMMsgType.unknown) {
       if (msgType != msgInfo.msgType) {
         throw Exception('[UnmatchMsgType] The type of the received msgInfo '
             'is not matching the msgType of this message tile widget, '
             'please ensure that you have passed a message info with right type');
       }
     }
+    return this;
   }
 
   @override
@@ -137,33 +155,57 @@ class _SRIMMsgTileBaseState extends State<SRIMMsgTileBase> {
 }
 
 class SRIMTextMsgTile extends SRIMMsgTileBase {
-  SRIMTextMsgTile({
-    super.key,
-    this.selfMsg = false,
-    this.name = '黑塔',
-    this.msg = '[自动回复]您好，我现在有事不在，一会儿也不会和您联系',
-    this.imageProvider,
-  }) {
-    imageProvider ??= const AssetImage('assets/images/srim/avatars/herta.png');
-  }
-
-  factory SRIMTextMsgTile.fromInfo(SRIMTextMsgInfo msgInfo) {
-    return SRIMTextMsgTile(
-      selfMsg: msgInfo.sentBySelf,
-      name: msgInfo.characterInfo?.name ?? '无名客',
-      msg: msgInfo.msg,
-      imageProvider: msgInfo.characterInfo?.avatarInfo?.avatarImageProvider,
-    );
-  }
-
   /// If this message is send by yourself
-  bool selfMsg;
+  bool sentBySelf;
 
+  /// The name of the sender of this msg
   String name;
 
+  /// The text content of this msg
   String msg;
 
+  /// The [ImageProvider] instance which provides the avatar picture of sender
+  /// of this msg
   ImageProvider? imageProvider;
+
+  @override
+  SRIMMsgType get msgType {
+    return SRIMMsgType.text;
+  }
+
+  /// Create an instance of SRIMTextMsgTile
+  SRIMTextMsgTile({
+    super.key,
+    this.sentBySelf = false,
+    this.name = '无名客',
+    this.msg = '',
+    this.imageProvider,
+  }) {
+    imageProvider ??=
+        const AssetImage('assets/images/srim/avatars/default.png');
+  }
+
+  @override
+  SRIMTextMsgTile fromMsgInfo(SRIMMsgInfoBase msgInfo,
+      {bool? showMsg, bool? initShowMsg}) {
+    // validate and convert the type
+    if ((msgInfo is SRIMTextMsgInfo) == false) {
+      throw Exception('[NotSpecifiedSubClass] The msgInfo received is not a '
+          'valid instance of SRIMTextMsgInfo, please check you have passed a '
+          'proper sub-class instance to this method');
+    } else {
+      msgInfo as SRIMTextMsgInfo;
+    }
+    // call super fromMsgInfo method
+    super.fromMsgInfo(msgInfo, showMsg: showMsg, initShowMsg: initShowMsg);
+    // name info
+    name = msgInfo.characterInfo?.name ?? name;
+    // avatar image provider info
+    imageProvider = msgInfo.characterInfo?.avatarInfo?.avatarImageProvider;
+    // msg content info
+    msg = msgInfo.msg;
+    return this;
+  }
 
   @override
   State<SRIMTextMsgTile> createState() => _SRIMTextMsgTileState();
@@ -181,7 +223,7 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile> {
   }
 
   void calculateDecorations() {
-    if (widget.selfMsg == true) {
+    if (widget.sentBySelf == true) {
       padding = const EdgeInsets.fromLTRB(60, 10, 0, 10);
       bubbleColor = const Color.fromRGBO(211, 187, 141, 1);
       bubbleBorder = const BorderRadius.only(
@@ -200,69 +242,85 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile> {
 
   @override
   Widget build(BuildContext context) {
+    // call calcu decorations to get the right ui configure field
     calculateDecorations();
-    // Message Tile Paddings (based on selfMsg value)
-    return Padding(
-      padding: padding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Msg Avatar
-          if (widget.selfMsg == false)
-            SRIMAvatar(
-              imageProvider: widget.imageProvider,
-            ),
-          if (widget.selfMsg == false)
-            const SizedBox(
-              width: 8,
-            ),
-          // Msg Bubble
-          Expanded(
-            child: Column(
-              crossAxisAlignment: widget.selfMsg
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                // Sender Name
-                Text(
-                  widget.name,
-                  style: TextStyle(
-                      color: Colors.black.withOpacity(0.3),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14),
-                ),
-                const SizedBox(height: 5),
-                // Message Contents
-                Container(
-                  // Message Bubble Decorations
-                  decoration: BoxDecoration(
-                    color: bubbleColor,
-                    borderRadius: bubbleBorder,
+    // Use gesture detector to deal with onTap and onLongPress callback function
+    // in the base class
+    return GestureDetector(
+      onTap: () {
+        // if user has passed onTap() callback function, trigger it here
+        if (widget.onTap != null) {
+          widget.onTap!();
+        }
+      },
+      onLongPress: () {
+        if (widget.onLongPress != null) {
+          widget.onLongPress!();
+        }
+      },
+      // Message Tile Paddings (based on sentBySelf value)
+      child: Padding(
+        padding: padding,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Msg Avatar
+            if (widget.sentBySelf == false)
+              SRIMAvatar(
+                imageProvider: widget.imageProvider,
+              ),
+            if (widget.sentBySelf == false)
+              const SizedBox(
+                width: 8,
+              ),
+            // Msg Bubble
+            Expanded(
+              child: Column(
+                crossAxisAlignment: widget.sentBySelf
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  // Sender Name
+                  Text(
+                    widget.name,
+                    style: TextStyle(
+                        color: Colors.black.withOpacity(0.3),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      widget.msg,
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
+                  const SizedBox(height: 5),
+                  // Message Contents
+                  Container(
+                    // Message Bubble Decorations
+                    decoration: BoxDecoration(
+                      color: bubbleColor,
+                      borderRadius: bubbleBorder,
                     ),
-                  ),
-                )
-              ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        widget.msg,
+                        style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
-          ),
-          if (widget.selfMsg == true)
-            SizedBox(
-              width: 8,
-            ),
-          // Msg Avatar
-          if (widget.selfMsg == true)
-            SRIMAvatar(
-              imageProvider: widget.imageProvider,
-            ),
-        ],
+            if (widget.sentBySelf == true)
+              SizedBox(
+                width: 8,
+              ),
+            // Msg Avatar
+            if (widget.sentBySelf == true)
+              SRIMAvatar(
+                imageProvider: widget.imageProvider,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -315,61 +373,61 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
       builder: (context, chatInfoProvider, child) {
         /// Extract msg info refrence for this widget
         SRIMTextMsgInfo msgInfo = chatInfoProvider.msgInfoList![widget.index];
-        return GestureDetector(
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                // Message Edit Dialog
-                return AlertDialog(
-                  title: const Text('修改消息内容'),
-                  content: EditMsgInfoDialogContent(
-                    chatInfoPrivder: chatInfoProvider,
-                    msgInfo: msgInfo,
-                  ),
-                  actions: [
-                    // Copy a message to the end
-                    TextButton(
-                        onPressed: () {
-                          copyMsgToTheEndOfChatInfo(
-                            chatInfoProvider: chatInfoProvider,
-                            msgInfo: msgInfo,
-                          );
-                          SmartDialog.showToast('消息已成功复制到对话末尾');
-                        },
-                        child: const Text('复制本消息')),
-                    // Delete a message
-                    TextButton(
-                        style:
-                            TextButton.styleFrom(foregroundColor: Colors.red),
-                        onPressed: () {
-                          chatInfoProvider.msgInfoList
-                              ?.removeWhere((element) => element == msgInfo);
-                          SmartDialog.showToast('消息已删除');
-                          chatInfoProvider.notify();
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text(
-                          '删除本消息',
-                        )),
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('关闭此窗口'))
-                  ],
-                );
-              },
-            );
-          },
-          // LongPress a message to make a copy at the last of the conversation
-          onLongPress: () {
-            chatInfoProvider.duplicateMsg(msgInfo);
-            chatInfoProvider.notify();
-            SmartDialog.showToast('消息已成功复制到对话末尾');
-          },
-          child: SRIMTextMsgTile.fromInfo(msgInfo),
-        );
+        // Create msgTile instance for this editable msg tile
+        SRIMTextMsgTile msgTile = SRIMTextMsgTile().fromMsgInfo(msgInfo);
+        // set onLongPress callback for msg tile
+        msgTile.onLongPress = () {
+          chatInfoProvider.duplicateMsg(msgInfo);
+          chatInfoProvider.notify();
+          SmartDialog.showToast('消息已成功复制到对话末尾');
+        };
+        // set onTap callback for msg tile
+        msgTile.onTap = () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              // Message Edit Dialog
+              return AlertDialog(
+                title: const Text('修改消息内容'),
+                content: EditMsgInfoDialogContent(
+                  chatInfoPrivder: chatInfoProvider,
+                  msgInfo: msgInfo,
+                ),
+                actions: [
+                  // Copy a message to the end
+                  TextButton(
+                      onPressed: () {
+                        copyMsgToTheEndOfChatInfo(
+                          chatInfoProvider: chatInfoProvider,
+                          msgInfo: msgInfo,
+                        );
+                        SmartDialog.showToast('消息已成功复制到对话末尾');
+                      },
+                      child: const Text('复制本消息')),
+                  // Delete a message
+                  TextButton(
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      onPressed: () {
+                        chatInfoProvider.msgInfoList
+                            ?.removeWhere((element) => element == msgInfo);
+                        SmartDialog.showToast('消息已删除');
+                        chatInfoProvider.notify();
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        '删除本消息',
+                      )),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('关闭此窗口'))
+                ],
+              );
+            },
+          );
+        };
+        return msgTile;
       },
     );
   }

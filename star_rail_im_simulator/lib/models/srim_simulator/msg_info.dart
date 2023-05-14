@@ -5,28 +5,28 @@ import 'dart:convert';
 import './srim_simulator.dart';
 
 /// An enum class which is used for mark the type of the SRIMMessageInfo
-class SRIMMessageType {
+class SRIMMsgType {
   /// A text message type, usually sent by different characters in the game.
-  static const SRIMMessageType text = SRIMMessageType('text');
+  static const SRIMMsgType text = SRIMMsgType('text');
 
   /// A photo message type, containing a picture as the message content.
-  static const SRIMMessageType photo = SRIMMessageType('photo');
+  static const SRIMMsgType photo = SRIMMsgType('photo');
 
   /// An emoji message type, with an emoji as the message content.
-  static const SRIMMessageType emoji = SRIMMessageType('emoji');
+  static const SRIMMsgType emoji = SRIMMsgType('emoji');
 
   /// A notice message type, indicating a system announcement or a conversation divider line, etc.
-  static const SRIMMessageType notice = SRIMMessageType('notice');
+  static const SRIMMsgType notice = SRIMMsgType('notice');
 
   /// An unknown type message type, which means this message has an uncertain type,
   /// or the program can NOT determine it's type.
-  static const SRIMMessageType unknown = SRIMMessageType('unknown');
+  static const SRIMMsgType unknown = SRIMMsgType('unknown');
 
   /// The String object that represent the name of this message type
   final String typeText;
 
   /// Create a SRIMMessageType object from a `typeText`
-  const SRIMMessageType(this.typeText);
+  const SRIMMsgType(this.typeText);
 
   @override
   String toString() {
@@ -34,7 +34,7 @@ class SRIMMessageType {
   }
 
   /// A list contains all the initialized type of messages
-  static List<SRIMMessageType> get allTypeList {
+  static List<SRIMMsgType> get allTypeList {
     return [
       text,
       photo,
@@ -44,12 +44,12 @@ class SRIMMessageType {
     ];
   }
 
-  /// Returns a [SRIMMessageType] object based on received `typeText` param
+  /// Returns a [SRIMMsgType] object based on received `typeText` param
   ///
   /// Throw `MsgTypeNotFound` Exception if could not find a type with the received
   /// `typeText`. `unknown` is also allowed to be a `typeText` here
-  factory SRIMMessageType.fromString(String typeText) {
-    for (SRIMMessageType type in allTypeList) {
+  factory SRIMMsgType.fromString(String typeText) {
+    for (SRIMMsgType type in allTypeList) {
       if (type.typeText == typeText) {
         return type;
       }
@@ -63,11 +63,11 @@ class SRIMMessageType {
 /// Base model of message info
 class SRIMMsgInfoBase {
   /// The type of the msgType
-  SRIMMessageType msgType;
+  SRIMMsgType msgType;
 
   ///Create a message info base class instance
   SRIMMsgInfoBase({
-    this.msgType = SRIMMessageType.unknown,
+    this.msgType = SRIMMsgType.unknown,
   });
 
   /// Update the message information from a map object.
@@ -76,7 +76,7 @@ class SRIMMsgInfoBase {
   /// information has been properly updated.
   void fromMap(Map infoMap) {
     // msgType
-    msgType = SRIMMessageType.fromString(infoMap['msgType']);
+    msgType = SRIMMsgType.fromString(infoMap['msgType']);
   }
 
   /// Converts the message object into a map object.
@@ -121,7 +121,7 @@ class SRIMMsgInfoBase {
     SRIMMsgInfoBase newMsgInfo = SRIMMsgInfoBase();
     newMsgInfo.copyWith(anoMsgInfo);
 
-    if (newMsgInfo.msgType == SRIMMessageType.text) {
+    if (newMsgInfo.msgType == SRIMMsgType.text) {
       newMsgInfo = SRIMTextMsgInfo();
       newMsgInfo.copyWith(anoMsgInfo);
     }
@@ -145,7 +145,7 @@ class SRIMMsgInfoBase {
     // check the type of the message and call proper constructor of the subclass
 
     // if it is a text msg type
-    if (newMsgInfo.msgType == SRIMMessageType.text) {
+    if (newMsgInfo.msgType == SRIMMsgType.text) {
       newMsgInfo = SRIMTextMsgInfo();
       newMsgInfo.fromMap(infoMap);
     }
@@ -211,7 +211,7 @@ class SRIMTextMsgInfo extends SRIMCharacterMsgInfoBase {
   SRIMTextMsgInfo({
     this.msg = '',
   }) {
-    msgType = SRIMMessageType.text;
+    msgType = SRIMMsgType.text;
   }
 
   /// The text content of the message.

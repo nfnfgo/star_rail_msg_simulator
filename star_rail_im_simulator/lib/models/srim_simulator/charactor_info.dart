@@ -82,6 +82,35 @@ class SRIMCharacterInfo {
 // Avatar Info
 
 class SRIMAvatarInfo {
+  /// If this avatar is an asset avatar
+  bool isAssets;
+
+  /// The info of this avatar
+  ///
+  /// If [isAssets] is true, this is the name of the asset file, e.g.: xing.png.
+  /// Else, this is the path of the avatar file, e.g.: /storage/emulated/0/Andr
+  /// oid/data/com.example.bangumi_board/files/Pictures/avatars/xing.png
+  String? infoStr;
+
+  /// Get the Image provider of this avatar
+  ImageProvider get avatarImageProvider {
+    if (isAssets) {
+      try {
+        return AssetImage('assets/images/srim/avatars/$infoStr');
+      } catch (e) {
+        return const AssetImage('assets/images/srim/avatars/default.png');
+      }
+    } else {
+      try {
+        return FileImage(File(infoStr!));
+      } catch (e) {
+        return const AssetImage('assets/images/srim/avatars/default.png');
+      }
+    }
+  }
+
+  /// Create an avatar info, which contains the info that if this avatar is in
+  /// assets and the provider of this avatar
   SRIMAvatarInfo({
     this.isAssets = true,
     this.infoStr,
@@ -109,34 +138,6 @@ class SRIMAvatarInfo {
     try {
       infoStr = avatarInfo.infoStr;
     } catch (e) {}
-  }
-
-  /// If this avatar is an asset avatar
-  bool isAssets;
-
-  /// The info of this avatar
-  ///
-  /// If [isAssets] is true, this is the name of the asset file, e.g.: xing.png.
-  /// Else, this is the path of the avatar file, e.g.: /storage/emulated/0/Andr
-  /// oid/data/com.example.bangumi_board/files/Pictures/avatars/xing.png
-  String? infoStr;
-
-  /// Get the Image provider of this avatar
-  ImageProvider get avatarImageProvider {
-    if (isAssets) {
-      try {
-        return AssetImage('assets/images/srim/avatars/$infoStr');
-      } catch (e) {
-        // TODO: Add an error avatar
-        return const AssetImage('assets/images/srim/avatars/default.png');
-      }
-    } else {
-      try {
-        return FileImage(File(infoStr!));
-      } catch (e) {
-        return const AssetImage('assets/images/srim/avatars/default.png');
-      }
-    }
   }
 
   factory SRIMAvatarInfo.fromMap(Map infoMap) {
