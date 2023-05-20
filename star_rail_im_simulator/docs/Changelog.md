@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 23.5.20
+- Update: Move the animation control logic code from Msg Tile State Base to a new Mixin class
+- Update: Set default Editable Msg Tile to play animation (for animaton feature debug)
+
 ## 23.5.14
 
 - Update: Update default settings of the Text Msg Tile

@@ -109,6 +109,28 @@ class _SRIMMsgTileBaseState extends State<SRIMMsgTileBase> {
   // Since it is likely that both types of messages will require an entrance animation,
   // the functionality to handle message animations has been placed in the SRIMMessageTileBase base class.
 
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
+// ------------------------------------------------------------------
+// SRIMMsgTileStateAnimationControllerMixin
+
+// The mixin that used by the state of some Msg Tile Widget State class, so that
+// the state can obtain the ability to do some animation control
+
+/// The mixin that implements some animation controls base method for msg tile widget
+///
+/// To use this mixin, you need to override the `animateForward()` and `animateReverse()`
+/// method of this mixin, and call `triggerAnimation()` method when you need to
+/// exec the animation. The triggerAnimation() function will consider if need to
+/// call animation method to show animation
+///
+/// Notice: This mixin can only be used by the State class of a stateful widget
+mixin SRIMMsgTileStateAnimationControllerMixin<T extends StatefulWidget>
+    on State<T> {
   /// Trigger the animation of this message based on the value of `showMsg` and
   /// `oldShowMsg` param which this method received
   ///
@@ -117,24 +139,27 @@ class _SRIMMsgTileBaseState extends State<SRIMMsgTileBase> {
   ///
   /// Returns `-1` when `animateReversed()` triggerd, `0` when no animation triggerd,
   /// `1` when `animatedForward()` triggerd
-  int triggerAnimation(bool oldShowMsg) {
+  Future<int> triggerAnimation({
+    required bool showMsg,
+    required bool oldShowMsg,
+  }) async {
     // if equal, return 0 and do nothing
-    if (widget.showMsg == oldShowMsg) {
+    if (showMsg == oldShowMsg) {
       return 0;
     }
     // call forward animation method
-    if (widget.showMsg == true) {
-      animateForward();
+    if (showMsg == true) {
+      await animateForward();
       return 1;
     }
     // call reverse animation method
-    animateReversed();
+    await animateReversed();
     return -1;
   }
 
   /// This method will be automatically called by the sub-class of SRIMMessageTileInterface
   /// when the widget needs to play a forward animation.
-  void animateForward() {
+  Future<void> animateForward() async {
     debugPrint(
         '[NotOverrideAnimationWarning] The animateForward method has not been '
         'overridden by the sub-class of SRIMMessageTileInterface.');
@@ -142,17 +167,15 @@ class _SRIMMsgTileBaseState extends State<SRIMMsgTileBase> {
 
   /// This method will be automatically called by the sub-class of SRIMMessageTileInterface
   /// when the widget needs to play a reversed animation.
-  void animateReversed() {
+  Future<void> animateReversed() async {
     debugPrint(
         '[NotOverrideAnimationWarning] The animateReversed method has not been '
         'overridden by the sub-class of SRIMMessageTileInterface.');
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
 }
+
+// ----------------------------------------------------------------------------
+// SRIMTextMsgTile
 
 class SRIMTextMsgTile extends SRIMMsgTileBase {
   /// If this message is send by yourself
@@ -211,17 +234,69 @@ class SRIMTextMsgTile extends SRIMMsgTileBase {
   State<SRIMTextMsgTile> createState() => _SRIMTextMsgTileState();
 }
 
-class _SRIMTextMsgTileState extends State<SRIMTextMsgTile> {
+class _SRIMTextMsgTileState extends State<SRIMTextMsgTile>
+    with SRIMMsgTileStateAnimationControllerMixin<SRIMTextMsgTile> {
   late EdgeInsetsGeometry padding;
   late Color bubbleColor;
   late BorderRadius bubbleBorder;
+
+  ///  Decide if the msg or the loading animation will show
+  bool showLoading = false;
+
+  /// Decide if this msg UI element will appear, if false, this msg will completely
+  /// unvisible
+  bool msgVisible = false;
+
+  // Override the animation method
+  @override
+  Future<void> animateForward() async {
+    // first let the msg in the loading style
+    setState(() {
+      msgVisible = true;
+      showLoading = true;
+    });
+    // after 1 sec, make the msg content appear
+    await Future.delayed(const Duration(seconds: 1)).then((value) {
+      setState(() {
+        debugPrint('ok');
+        showLoading = false;
+      });
+    });
+  }
+
+  @override
+  Future<void> animateReversed() async {
+    setState(() {
+      msgVisible = false;
+      showLoading = true;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     calculateDecorations();
+    // call animation
+    if (widget.initShowMsg == true) {
+      msgVisible = true;
+      showLoading = false;
+    } else {
+      msgVisible = false;
+      showLoading = true;
+    }
+    triggerAnimation(showMsg: widget.showMsg, oldShowMsg: widget.initShowMsg);
   }
 
+  @override
+  void didUpdateWidget(covariant SRIMTextMsgTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showMsg != oldWidget.showMsg) {
+      triggerAnimation(showMsg: widget.showMsg, oldShowMsg: oldWidget.showMsg);
+    }
+  }
+
+  /// Used to calculate the specified msg tile decorations based on the info
+  /// of this msg
   void calculateDecorations() {
     if (widget.sentBySelf == true) {
       padding = const EdgeInsets.fromLTRB(60, 10, 0, 10);
@@ -311,7 +386,7 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile> {
               ),
             ),
             if (widget.sentBySelf == true)
-              SizedBox(
+              const SizedBox(
                 width: 8,
               ),
             // Msg Avatar
@@ -374,7 +449,11 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
         /// Extract msg info refrence for this widget
         SRIMTextMsgInfo msgInfo = chatInfoProvider.msgInfoList![widget.index];
         // Create msgTile instance for this editable msg tile
-        SRIMTextMsgTile msgTile = SRIMTextMsgTile().fromMsgInfo(msgInfo);
+        SRIMTextMsgTile msgTile = SRIMTextMsgTile().fromMsgInfo(
+          msgInfo,
+          showMsg: true,
+          initShowMsg: false,
+        );
         // set onLongPress callback for msg tile
         msgTile.onLongPress = () {
           chatInfoProvider.duplicateMsg(msgInfo);
