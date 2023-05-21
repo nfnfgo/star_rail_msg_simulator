@@ -59,15 +59,19 @@ class SRIMMsgTileBase extends StatefulWidget {
   /// method. Here, a similar processing method to the factory constructor of the
   /// SRIMMsgInfoBase base class is adopted.
   /// You can refer to the relevant documentation for detailed information
-  factory SRIMMsgTileBase.fromMsgInfo(SRIMMsgInfoBase msgInfo) {
+  factory SRIMMsgTileBase.fromMsgInfo(SRIMMsgInfoBase msgInfo, {Key? key}) {
     SRIMMsgTileBase msgTile;
     // if need a text tile
     if (msgInfo.msgType == SRIMMsgType.text) {
-      msgTile = SRIMTextMsgTile();
+      msgTile = SRIMTextMsgTile(
+        key: key,
+      );
     }
     // if no type matched, default to unknown
     else {
-      msgTile = SRIMMsgTileBase();
+      msgTile = SRIMMsgTileBase(
+        key: key,
+      );
     }
     msgTile.fromMsgInfo(msgInfo);
     return msgTile;
@@ -258,7 +262,7 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile>
       showLoading = true;
     });
     // after 1 sec, make the msg content appear
-    await Future.delayed(const Duration(seconds: 1)).then((value) {
+    await Future.delayed(const Duration(seconds: 3)).then((value) {
       setState(() {
         showLoading = false;
       });
@@ -351,49 +355,45 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile>
               ),
             // Msg Bubble
             Expanded(
-              child: Align(
-                  alignment: widget.sentBySelf
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: AnimatedSwitcher(
+              child: Column(
+                crossAxisAlignment: widget.sentBySelf
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  // Sender Name
+                  Text(
+                    widget.name,
+                    style: TextStyle(
+                        color: Colors.black.withOpacity(0.3),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14),
+                  ),
+                  const SizedBox(height: 5),
+                  // Message Contents
+                  AnimatedSwitcher(
                     duration: const Duration(milliseconds: 500),
                     child: showLoading
-                        ? const Text('Loading')
-                        : Column(
-                            crossAxisAlignment: widget.sentBySelf
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              // Sender Name
-                              Text(
-                                widget.name,
-                                style: TextStyle(
-                                    color: Colors.black.withOpacity(0.3),
+                        ? LoadingAnimationWidget()
+                        : Container(
+                            // Message Bubble Decorations
+                            decoration: BoxDecoration(
+                              color: bubbleColor,
+                              borderRadius: bubbleBorder,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                widget.msg,
+                                style: const TextStyle(
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14),
+                                    fontSize: 16),
                               ),
-                              const SizedBox(height: 5),
-                              // Message Contents
-                              Container(
-                                // Message Bubble Decorations
-                                decoration: BoxDecoration(
-                                  color: bubbleColor,
-                                  borderRadius: bubbleBorder,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    widget.msg,
-                                    style: const TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16),
-                                  ),
-                                ),
-                              )
-                            ],
+                            ),
                           ),
-                  )),
+                  )
+                ],
+              ),
             ),
             if (widget.sentBySelf == true)
               const SizedBox(
@@ -462,7 +462,7 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
         SRIMTextMsgTile msgTile = SRIMTextMsgTile().fromMsgInfo(
           msgInfo,
           showMsg: true,
-          initShowMsg: false,
+          initShowMsg: true,
         );
         // set onLongPress callback for msg tile
         msgTile.onLongPress = () {
@@ -712,28 +712,87 @@ class _EditMsgInfoDialogContentState extends State<EditMsgInfoDialogContent> {
   }
 }
 
-// ListView.separated(
-//               shrinkWrap: true,
-//               scrollDirection: Axis.horizontal,
-//               itemCount: SRIMCharacterInfos.list.length,
-//               separatorBuilder: (context, index) => const VerticalDivider(),
-//               itemBuilder: (context, index) {
-//                 // get the character info for this item
-//                 SRIMCharacterInfo characterInfo =
-//                     SRIMCharacterInfos.list[index];
-//                 return GestureDetector(
-//                   onTap: () {
-//                     msgInfo.characterInfo =
-//                         SRIMCharacterInfo.copyWith(characterInfo);
-//                     _editNameController.text = characterInfo.name!;
-//                     chatInfoProvider.notify();
-//                     SmartDialog.showToast('成功更换角色为${characterInfo.name}');
-//                   },
-//                   child: SRIMAvatar(
-//                     size: 50,
-//                     imageProvider:
-//                         characterInfo.avatarInfo?.avatarImageProvider,
-//                   ),
-//                 );
-//               },
-//             )
+// Loading Widget for test msg tile animation
+
+class LoadingAnimationWidget extends StatefulWidget {
+  const LoadingAnimationWidget({Key? key}) : super(key: key);
+
+  @override
+  _LoadingAnimationWidgetState createState() => _LoadingAnimationWidgetState();
+}
+
+class _LoadingAnimationWidgetState extends State<LoadingAnimationWidget>
+    with TickerProviderStateMixin {
+  late AnimationController _controller1;
+  late AnimationController _controller2;
+  late AnimationController _controller3;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller1 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _controller2 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _controller3 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _controller1.repeat(reverse: true);
+
+    Future.delayed(const Duration(milliseconds: 150)).then((value) {
+      _controller2.repeat(reverse: true);
+    });
+
+    Future.delayed(const Duration(milliseconds: 300)).then((value) {
+      _controller3.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller1.dispose();
+    _controller2.dispose();
+    _controller3.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        FadeTransition(
+          opacity: _controller1,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 1),
+            child: Icon(Icons.circle, size: 12),
+          ),
+        ),
+        FadeTransition(
+          opacity: _controller2,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 1),
+            child: Icon(Icons.circle, size: 12),
+          ),
+        ),
+        FadeTransition(
+          opacity: _controller3,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 1),
+            child: Icon(Icons.circle, size: 12),
+          ),
+        ),
+      ],
+    );
+  }
+}

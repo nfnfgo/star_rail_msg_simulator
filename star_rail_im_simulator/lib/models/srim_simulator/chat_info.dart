@@ -8,6 +8,16 @@ import 'package:star_rail_im_simulator/models/srim_simulator/srim_simulator.dart
 import './srim_simulator.dart';
 
 class SRIMChatInfo with ChangeNotifier {
+  /// The name of this chat, e.g.: Herta
+  String? chatName;
+
+  /// The introduction of this chat, e.g.: 此号停用 | 商务联系：艾丝妲
+  String? chatIntroduction;
+
+  List<SRIMTextMsgInfo>? msgInfoList;
+
+  List<SRIMCharacterInfo>? characterInfoList;
+
   /// Create a SRIMChatInfo, used for SRIM Simulator, stored the info of a
   /// complete conversation
   SRIMChatInfo({
@@ -22,15 +32,21 @@ class SRIMChatInfo with ChangeNotifier {
     characterInfoList ??= [];
   }
 
-  /// The name of this chat, e.g.: Herta
-  String? chatName;
+  /// Create a new copy of a chat info instance
+  factory SRIMChatInfo.copyWith(SRIMChatInfo anoChatInfo) {
+    SRIMChatInfo newChatInfo = SRIMChatInfo();
+    newChatInfo.copyWith(anoChatInfo);
+    return newChatInfo;
+  }
 
-  /// The introduction of this chat, e.g.: 此号停用 | 商务联系：艾丝妲
-  String? chatIntroduction;
-
-  List<SRIMTextMsgInfo>? msgInfoList;
-
-  List<SRIMCharacterInfo>? characterInfoList;
+  /// Update the info of this chat info class based on another chat info instance
+  SRIMChatInfo copyWith(SRIMChatInfo anoChatInfo) {
+    chatName = anoChatInfo.chatName;
+    characterInfoList = anoChatInfo.characterInfoList;
+    chatIntroduction = anoChatInfo.chatIntroduction;
+    msgInfoList = anoChatInfo.msgInfoList;
+    return this;
+  }
 
   /// Update info of SRIMChatInfo from string type object
   void fromMap(Map infoMap) {

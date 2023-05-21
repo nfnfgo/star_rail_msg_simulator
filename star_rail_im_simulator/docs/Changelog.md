@@ -2,10 +2,13 @@
 
 ## TODO
 
-- Add animation for Text Msg Tile
+- Enhance animation for Text Msg Tile (let the waiting time based on the length of the text)
+- Add Playable chat windows (used for demonstration)
 
 ## 23.5.21
 
+- Update: Add the Playable Chat Windows
+- Update: Add animation for Text Msg Tile
 - Fix: Fix the the `sentBySelf` param is not working issue in editing msg dialog
 
 ## 23.5.20

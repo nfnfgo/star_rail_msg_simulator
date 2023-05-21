@@ -15,6 +15,9 @@ import 'package:star_rail_im_simulator/widgets/sr_im_simulator/materials.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
+// Pages
+import 'package:star_rail_im_simulator/pages/sr_im_simulator/playable_chat_page.dart';
+
 class SRIMChatPage extends StatefulWidget {
   const SRIMChatPage({super.key});
 
@@ -265,6 +268,21 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
                     iconSize: widget.iconSize,
                   );
                 },
+              ),
+
+              // Into Playable Button
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) {
+                      return SRIMPlayableChatPage(
+                        chatInfo: chatInfoProvider,
+                      );
+                    },
+                  ));
+                },
+                icon: const Icon(Icons.play_arrow_rounded),
+                iconSize: widget.iconSize,
               ),
 
               // FullScreen Button
