@@ -162,6 +162,7 @@ class _SRIMChatWindowsState extends State<SRIMChatWindows> {
                   itemCount: widget.chatInfo.msgInfoList?.length ?? 0,
                   itemBuilder: (context, index) {
                     return SRIMMsgEditableMsgTile(
+                        key: ValueKey(index),
                         index: widget.chatInfo.msgInfoList!.length - index - 1);
                   },
                 ),

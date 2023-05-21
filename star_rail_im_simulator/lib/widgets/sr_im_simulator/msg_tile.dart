@@ -227,6 +227,8 @@ class SRIMTextMsgTile extends SRIMMsgTileBase {
     imageProvider = msgInfo.characterInfo?.avatarInfo?.avatarImageProvider;
     // msg content info
     msg = msgInfo.msg;
+    // sent by self info
+    sentBySelf = msgInfo.sentBySelf;
     return this;
   }
 
@@ -258,7 +260,6 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile>
     // after 1 sec, make the msg content appear
     await Future.delayed(const Duration(seconds: 1)).then((value) {
       setState(() {
-        debugPrint('ok');
         showLoading = false;
       });
     });
@@ -350,40 +351,49 @@ class _SRIMTextMsgTileState extends State<SRIMTextMsgTile>
               ),
             // Msg Bubble
             Expanded(
-              child: Column(
-                crossAxisAlignment: widget.sentBySelf
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  // Sender Name
-                  Text(
-                    widget.name,
-                    style: TextStyle(
-                        color: Colors.black.withOpacity(0.3),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
-                  ),
-                  const SizedBox(height: 5),
-                  // Message Contents
-                  Container(
-                    // Message Bubble Decorations
-                    decoration: BoxDecoration(
-                      color: bubbleColor,
-                      borderRadius: bubbleBorder,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        widget.msg,
-                        style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
-                      ),
-                    ),
-                  )
-                ],
-              ),
+              child: Align(
+                  alignment: widget.sentBySelf
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    child: showLoading
+                        ? const Text('Loading')
+                        : Column(
+                            crossAxisAlignment: widget.sentBySelf
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              // Sender Name
+                              Text(
+                                widget.name,
+                                style: TextStyle(
+                                    color: Colors.black.withOpacity(0.3),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
+                              ),
+                              const SizedBox(height: 5),
+                              // Message Contents
+                              Container(
+                                // Message Bubble Decorations
+                                decoration: BoxDecoration(
+                                  color: bubbleColor,
+                                  borderRadius: bubbleBorder,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    widget.msg,
+                                    style: const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                  )),
             ),
             if (widget.sentBySelf == true)
               const SizedBox(
