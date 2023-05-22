@@ -1,6 +1,9 @@
-# Star Rail IM Simlulator
+# 星穹铁道聊天界面模拟器
 
 一个使用Flutter编写的，模拟星穹铁道聊天界面的小工具。
+
+标签: 星穹铁道 聊天 聊天界面 模拟
+
 
 ![生气的黑塔.png](./docs/imgs/srim_example_herta.png)
 
