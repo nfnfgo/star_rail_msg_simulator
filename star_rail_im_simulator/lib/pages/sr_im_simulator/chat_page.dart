@@ -273,6 +273,7 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
               // Into Playable Button
               IconButton(
                 onPressed: () {
+                  SmartDialog.showToast('长按对话区域可退出交互模式');
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) {
                       return SRIMPlayableChatPage(

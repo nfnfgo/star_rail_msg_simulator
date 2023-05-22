@@ -5,6 +5,11 @@
 - Enhance animation for Text Msg Tile (let the waiting time based on the length of the text)
 - Add Playable chat windows (used for demonstration)
 
+## 23.5.23
+
+- Update: Add repo introductions and repo docs
+- Update: Add some in-app use tips
+
 ## 23.5.21
 
 - Update: Add the Playable Chat Windows

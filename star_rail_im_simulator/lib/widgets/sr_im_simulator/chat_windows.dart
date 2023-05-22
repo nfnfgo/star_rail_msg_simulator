@@ -242,6 +242,9 @@ class _SRIMPlayableChatWindowsState extends State<SRIMPlayableChatWindows> {
           }
         });
       },
+      onLongPress: () {
+        Navigator.of(context).pop();
+      },
       child: AnimatedPadding(
         padding: widget.padding!,
         duration: widget.duration,

@@ -491,6 +491,7 @@ class _SRIMMsgEditableMsgTileState extends State<SRIMMsgEditableMsgTile> {
                           msgInfo: msgInfo,
                         );
                         SmartDialog.showToast('消息已成功复制到对话末尾');
+                        Navigator.of(context).pop();
                       },
                       child: const Text('复制本消息')),
                   // Delete a message
