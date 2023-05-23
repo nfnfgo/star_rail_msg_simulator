@@ -3,7 +3,10 @@
 ## TODO
 
 - Enhance animation for Text Msg Tile (let the waiting time based on the length of the text)
-- Add Playable chat windows (used for demonstration)
+
+## 23.5.24
+
+- WorkOn: App Info Page
 
 ## 23.5.23
 

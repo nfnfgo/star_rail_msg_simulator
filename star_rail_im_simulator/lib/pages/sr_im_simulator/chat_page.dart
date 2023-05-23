@@ -17,6 +17,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 // Pages
 import 'package:star_rail_im_simulator/pages/sr_im_simulator/playable_chat_page.dart';
+import 'package:star_rail_im_simulator/pages/sr_im_simulator/more_info_page.dart';
 
 class SRIMChatPage extends StatefulWidget {
   const SRIMChatPage({super.key});
@@ -303,6 +304,19 @@ class _SRIMEditBarState extends State<SRIMEditBar> {
                     iconSize: widget.iconSize,
                   );
                 },
+              ),
+
+              // More Info Page
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) {
+                      return SRIMAppInfoPage();
+                    },
+                  ));
+                },
+                icon: const Icon(Icons.more_horiz_rounded),
+                iconSize: widget.iconSize,
               ),
             ],
           ),
