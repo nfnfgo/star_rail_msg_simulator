@@ -6,7 +6,7 @@
 
 ## 23.5.24
 
-- WorkOn: App Info Page
+- Update: Add the App Info Page
 
 ## 23.5.23
 
